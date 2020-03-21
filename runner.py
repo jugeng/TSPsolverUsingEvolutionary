@@ -7,16 +7,27 @@ import random
 import math
 import pandas as pd
 
+from os import system
+
+import crossover
+
+#Controller Variables
 numberOfCities = 0
-populationSize = 50
+populationSize = 86
 mutationRate = 0.05
+genCount = 500
 
 
-fitnessMatrix = []
+#Calculators
 totalFitness = 0
 
+#Result Store
 minDist = math.inf
 bestRoute = []
+
+#Data-plotting
+fitness_curve = []
+
 
 def generateDistMatrix():
 
@@ -45,49 +56,97 @@ def generateInitPop():
     for i in range(populationSize-1):
         np.random.shuffle(pop[1:])
         populationMatrix.loc[len(populationMatrix)] = pop
-    
 
     calculateFitness()
 
 
-def selection():
-    return True    
-
-
-def calculateFitness():
+def matingPoolSelection():
+    #Using Roulette wheel selection we will assign probabilities from 0-1 to 
+    #each individual. The probability will determine how often we select a fit individual
+    
     global totalFitness, fitnessMatrix
 
-    for i in range(populationSize):
-        individual = populationMatrix.iloc[i].values
+    index = 0
+    r = random.random()
+
+    while( r > 0):
+        r = r - fitnessMatrix[index]
+        index += 1 
+    
+    index -= 1
+
+    return populationMatrix.iloc[index].values
+    
+
+def calculateFitness():
+    global totalFitness, fitnessMatrix, minDist, fitness_curve
+    fitness =[]
+    for i,individual in populationMatrix.iterrows():
         distance = 0
         for j in range(len(individual)-1):
-            distance += calculateDistance(individual[j],individual[j+1])
-             
-        fitnessMatrix.append(1 / distance)              #For routes with smaller distance to have highest fitness
-    fitnessMatrix = np.asarray(fitnessMatrix)
+            #distance += calculateDistance(individual[j],individual[j+1])
+            distance += distanceMatrix.iat[individual[j],individual[j+1]]
+   
+        fitness.append( 1 / distance )  #For routes with smaller distance to have highest fitness
+
+        #Updating the best distance variable when a distance that is smaller than all
+        #previous calculations is found
+        
+        if distance < minDist:
+            minDist = distance
+            bestRoute = np.copy(individual)
+            
+    fitness_curve.append(minDist)
+    fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)
-    print(fitnessMatrix)
-  
+    #print(minDist)
+
 
 def calculateDistance(loc_1, loc_2):
     return distanceMatrix.iat[loc_1,loc_2]
 
 
-def fitnessNormalize():
-    return True
-
-def crossover():
-    return True
-
 def mutation():
     return True
 
+def nextGeneration():
+    global nextGenerationMatrix, populationMatrix, genCount, bestRoute
 
+    counter = 0
+    for i in range(genCount):
+        print("Generation: ", i+1)
+        m = minDist
+        newGen = []
+        while (len(newGen)!= populationSize):
+            parentA = matingPoolSelection()
+            parentB = matingPoolSelection()
+            childA, childB = crossover.orderedCrossover_SingleCut(parentA, parentB)
+            #mutation(childA)
+            #mutation(childB)
+            newGen.append(childA)
+            newGen.append(childB) 
+       
+        nextGenerationMatrix = nextGenerationMatrix.append(newGen)
+        populationMatrix.update(nextGenerationMatrix)
+        nextGenerationMatrix = nextGenerationMatrix.iloc[0:0]
+        calculateFitness()
+
+        if(minDist == m):
+            counter += 1 
+        else:
+            counter = 0 
+
+        if (counter == 100):
+            break  
+        
+        _ = system('cls')  #refresh and clear terminal window
+  
 #Enter city co-ordinates into to the program. Using an external coords file to import data
 
 temp_list = []
 with open("test_data.txt", "r") as f:
+#with open("att48_xy.txt", "r") as f:
     for line in f:
         x, y = line.split()
         temp_list.append([int(x),int(y)])  #Convert to float for accuracy
@@ -95,12 +154,16 @@ with open("test_data.txt", "r") as f:
 cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])  #Initiating pandas dataframe
 
 numberOfCities =  len(cityCoord) 
-
+if numberOfCities > 0:
+    print("Successfully added",numberOfCities, "cities from data.")
 #print(cityCoord, numberOfCities)
 
 distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
 populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
-
+nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 
 generateDistMatrix()
 generateInitPop()
+nextGeneration()
+
+print(minDist, bestRoute)
