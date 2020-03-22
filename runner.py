@@ -12,10 +12,7 @@ from os import system
 import crossover
 import mutation
 
-
 from datetime import datetime
-
-
 
 #Controller Variables
 numberOfCities = 0
@@ -163,19 +160,20 @@ def nextGeneration():
             break  
     #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
         
-  
-#Enter city co-ordinates into to the program. Using an external coords file to import data
 
 
-fname = "./logs/TSP_" + str(populationSize) + "_" + str(mutationRate) + "_" + ".txt"
+#Data Logging
+fname = "./logs/test_log/TSP_" + str(populationSize) + "_" + str(mutationRate) + "_" + ".txt"
 log = open(str(fname), "w")
-
 log.write("TSP USING GA\nDeveloped by Jugen Gawande\nRun Test ")
 log.write(str(datetime.now()))
 log.write("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \n".format(pop =populationSize, mut = mutationRate))
 
 
 temp_list = []
+  
+#Enter city co-ordinates into to the program. Using an external coords file to import data
+
 #with open("test_data.txt", "r") as f:
 with open("lau15_xy.txt", "r") as f:
     for line in f:
@@ -206,9 +204,15 @@ log.close()
 with open("./logs/FC_{}_{}.csv".format(populationSize,mutationRate), "w") as f:
     f.write(str(fitness_curve))
 
+import matplotlib 
+import matplotlib.pyplot as plotting
+
+
+
+plt.plot(x,y)
+
 
 print(minDist, bestRoute)
 print("-------------Done!------------")
 
 
-#+ str(datetime.now()) 
