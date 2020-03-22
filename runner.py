@@ -12,10 +12,15 @@ from os import system
 import crossover
 import mutation
 
+
+from datetime import datetime
+
+
+
 #Controller Variables
 numberOfCities = 0
-populationSize = 200
-mutationRate = 0.3
+populationSize = 300
+mutationRate = 0.4
 genCount = 500
 
 
@@ -45,7 +50,8 @@ def generateDistMatrix():
             temp_dist.append(float(distance))   #Using python list comprehension for better performance
 
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-    print(distanceMatrix)
+    log.write(str(distanceMatrix))
+    #print(distanceMatrix)
   
 
 def generateInitPop():
@@ -58,6 +64,7 @@ def generateInitPop():
         np.random.shuffle(pop[1:])
         populationMatrix.loc[len(populationMatrix)] = pop
 
+    log.write("Initial Population Generated.\n")
     calculateFitness()
 
 
@@ -158,6 +165,15 @@ def nextGeneration():
   
 #Enter city co-ordinates into to the program. Using an external coords file to import data
 
+
+fname = "TSP_" + str(populationSize) + "_" + str(mutationRate) + "_" + ".txt"
+print(fname)
+log = open(str(fname), "w")
+log.write("TSP USING GA\nDeveloped by Jugen Gawande\nRun Test ")
+log.write(str(datetime.now()))
+log.write("\nPOPULATION SIZE= \nMUTATION RATE= \n")
+
+
 temp_list = []
 #with open("test_data.txt", "r") as f:
 with open("lau15_xy.txt", "r") as f:
@@ -169,7 +185,7 @@ cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])  #Initiati
 
 numberOfCities =  len(cityCoord) 
 if numberOfCities > 0:
-    print("Successfully added",numberOfCities, "cities from data.")
+    log.write("Successfully added cities from data.\nDISTANCE MATRIX=\n")
 #print(cityCoord, numberOfCities)
 
 distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
@@ -180,4 +196,13 @@ generateDistMatrix()
 generateInitPop()
 nextGeneration()
 
+
+log.write("Algorithm Completed.\n")
+log.write("GENERATIONS EVOLVED=\n")
+log.write("MINIMAL DISTANCE=\n")
+log.write("BEST ROUTE FOUND=\n")
+log.close()
 print(minDist, bestRoute)
+
+
+#+ str(datetime.now()) 
