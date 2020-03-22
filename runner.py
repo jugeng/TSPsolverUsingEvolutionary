@@ -15,9 +15,9 @@ import mutation
 from datetime import datetime
 
 #Controller Variables
-data = "att48_xy"
-populationSize = 200
-mutationRate = 0.1
+data = "test_data"
+populationSize = 100
+mutationRate = 0.15
 genCount = 500
 numberOfCities = 0
 
@@ -69,13 +69,30 @@ def generateDistMatrix():
 def generateInitPop():
     global numberOfCities, populationSize
     
-    pop = np.arange(numberOfCities)
-  
+    pop = [0]
+    for i in range(numberOfCities):
+
+        sort_dist = distanceMatrix.iloc[i]
+        sort_dist = sort_dist.sort_values(ascending=True)
+        
+
+        for index, row in sort_dist.iteritems():
+            if row == 0.0:
+                continue
+            
+            if index in pop:
+                continue
+            else:
+                pop.append(index)
+                break 
+    
+    pop = np.asarray(pop)
     populationMatrix.loc[len(populationMatrix)] = pop
-  
+ 
     for i in range(populationSize-1):
         np.random.shuffle(pop[1:])
         populationMatrix.loc[len(populationMatrix)] = pop
+
 
     log.write("Initial Population Generated.\n")
     calculateFitness()
@@ -144,7 +161,6 @@ def nextGeneration():
     i=0
     while(1):
     #for i in range(genCount):
-        i+=1
 
         _ = system('cls')  #refresh and clear terminal window
 
@@ -155,8 +171,8 @@ def nextGeneration():
 
         while (len(newGen)!= populationSize-2):
             parentA = matingPoolSelection()
-            parentB = matingPoolSelection()
-            childA, childB = crossover.orderedCrossover_SingleCut(parentA, parentB)
+            parentB = matingPoolSelection()    
+            childA, childB = crossover.OC_Single(parentA, parentB)
             mutateChild(childA)
             mutateChild(childB)
             newGen.append(childA)
@@ -175,7 +191,8 @@ def nextGeneration():
 
         if (counter == 100):
             log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
-            break  
+            break 
+        i+=1 
     #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
         
 
