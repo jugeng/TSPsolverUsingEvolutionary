@@ -19,7 +19,7 @@ from datetime import datetime
 
 #Controller Variables
 numberOfCities = 0
-populationSize = 300
+populationSize = 100
 mutationRate = 0.4
 genCount = 500
 
@@ -50,7 +50,7 @@ def generateDistMatrix():
             temp_dist.append(float(distance))   #Using python list comprehension for better performance
 
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-    log.write(str(distanceMatrix))
+    
     #print(distanceMatrix)
   
 
@@ -109,7 +109,7 @@ def calculateFitness():
     fitness_curve.append(minDist)
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
-    fitnessMatrix = np.divide(fitnessMatrix,totalFitness)
+    fitnessMatrix = np.divide(fitnessMatrix,totalFitness)       #Normalizing the fitness values between [0-1]
     nextGenerationMatrix = nextGenerationMatrix.append(individual)    #Elitism, moving the fittest gene to the new generation as is
     print(minDist)
 
@@ -158,20 +158,21 @@ def nextGeneration():
         else:
             counter = 0 
 
-        if (counter == 100):
+        if (counter == 30):
+            log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
             break  
-        
+    #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
         
   
 #Enter city co-ordinates into to the program. Using an external coords file to import data
 
 
-fname = "TSP_" + str(populationSize) + "_" + str(mutationRate) + "_" + ".txt"
-print(fname)
+fname = "./logs/TSP_" + str(populationSize) + "_" + str(mutationRate) + "_" + ".txt"
 log = open(str(fname), "w")
+
 log.write("TSP USING GA\nDeveloped by Jugen Gawande\nRun Test ")
 log.write(str(datetime.now()))
-log.write("\nPOPULATION SIZE= \nMUTATION RATE= \n")
+log.write("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \n".format(pop =populationSize, mut = mutationRate))
 
 
 temp_list = []
@@ -185,7 +186,7 @@ cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])  #Initiati
 
 numberOfCities =  len(cityCoord) 
 if numberOfCities > 0:
-    log.write("Successfully added cities from data.\nDISTANCE MATRIX=\n")
+    log.write("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
 #print(cityCoord, numberOfCities)
 
 distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
@@ -198,11 +199,16 @@ nextGeneration()
 
 
 log.write("Algorithm Completed.\n")
-log.write("GENERATIONS EVOLVED=\n")
-log.write("MINIMAL DISTANCE=\n")
-log.write("BEST ROUTE FOUND=\n")
+log.write("MINIMAL DISTANCE={}\n".format(minDist))
+log.write("BEST ROUTE FOUND={}\n".format(bestRoute))
 log.close()
+
+with open("./logs/FC_{}_{}.csv".format(populationSize,mutationRate), "w") as f:
+    f.write(str(fitness_curve))
+
+
 print(minDist, bestRoute)
+print("-------------Done!------------")
 
 
 #+ str(datetime.now()) 
