@@ -13,13 +13,17 @@ import crossover
 import mutation
 
 from datetime import datetime
+import matplotlib 
+import matplotlib.pyplot as plt
 
 #Controller Variables
 data = "test_data"
-populationSize = 100
-mutationRate = 0.15
+data_type_flag = 0
+populationSize = 80
+mutationRate = 0.09
 genCount = 500
 numberOfCities = 0
+dead_count = 50
 
 
 #Calculators
@@ -33,9 +37,33 @@ bestRoute = []
 fitness_curve = []
 
 
+
+def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
+    # Print iterations progress
+    """
+    Call in a loop to create terminal progress bar
+    @params:
+        iteration   - Required  : current iteration (Int)
+        total       - Required  : total iterations (Int)
+        prefix      - Optional  : prefix string (Str)
+        suffix      - Optional  : suffix string (Str)
+        decimals    - Optional  : positive number of decimals in percent complete (Int)
+        length      - Optional  : character length of bar (Int)
+        fill        - Optional  : bar fill character (Str)
+        printEnd    - Optional  : end character (e.g. "\r", "\r\n") (Str)
+    """
+    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
+    filledLength = int(length * iteration // total)
+    bar = fill * filledLength + '-' * (length - filledLength)
+    print('\r{} {} |{}| {}% {} CURR_MIN_DIST={:.2f}'.format(prefix,iteration, bar, percent, suffix, minDist), end = printEnd )
+    # Print New Line on Complete
+    if iteration == total: 
+        print("\n")
+
+
 def addCity_using_coords():
-    global numberOfCities, cityCoord
-    
+    global numberOfCities, cityCoord,distanceMatrix
+
     temp_list = []
     with open(str(data_fname), "r") as f:
         for line in f:
@@ -44,8 +72,32 @@ def addCity_using_coords():
         cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
     numberOfCities =  len(cityCoord) 
     if numberOfCities > 0:
+        print("Number of cities=", numberOfCities)
+        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
         log.write("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
     #print(cityCoord, numberOfCities)
+
+
+def addCity_using_dist():
+    
+    global distanceMatrix, numberOfCities 
+
+    temp_dist = []
+    with open(str(data_fname), "r") as f:
+        numberOfCities = int(f.readline())
+        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
+    
+        i = 0
+        for line in f:
+            for val in line.split():
+                temp_dist.append(float(val))
+                i += 1
+                if i == numberOfCities:
+
+                    i = 0
+                    distanceMatrix.loc[len(distanceMatrix)] = temp_dist
+                    temp_dist = [] 
+
 
 def generateDistMatrix():
 
@@ -93,7 +145,7 @@ def generateInitPop():
         np.random.shuffle(pop[1:])
         populationMatrix.loc[len(populationMatrix)] = pop
 
-
+    #print(populationMatrix)
     log.write("Initial Population Generated.\n")
     calculateFitness()
 
@@ -141,8 +193,7 @@ def calculateFitness():
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)       #Normalizing the fitness values between [0-1]
     nextGenerationMatrix = nextGenerationMatrix.append(individual)    #Elitism, moving the fittest gene to the new generation as is
-    print(minDist)
-
+ 
 
 def calculateDistance(loc_1, loc_2):
     return distanceMatrix.iat[loc_1,loc_2]
@@ -152,20 +203,20 @@ def mutateChild(gene):
     global mutationRate
     r = random.random()
     if r < mutationRate:
-        return mutation.Twors(gene)
+        return mutation.RSM(gene)
 
 def nextGeneration():
-    global nextGenerationMatrix, populationMatrix, genCount, bestRoute
+    global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count
 
     counter = 0
     i=0
+    end_point = dead_count
+    printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 50)
+
     while(1):
     #for i in range(genCount):
 
-        _ = system('cls')  #refresh and clear terminal window
-
-        print("Generation: ", i+1)
-
+        #_ = system('cls')  #refresh and clear terminal window
         m = minDist
         newGen = []
 
@@ -179,87 +230,96 @@ def nextGeneration():
             newGen.append(childB)
 
        
-        nextGenerationMatrix = nextGenerationMatrix.append(newGen)
+        nextGenerationMatrix = nextGenerationMatrix.append(newGen[:populationSize])
         populationMatrix.update(nextGenerationMatrix)
         nextGenerationMatrix = nextGenerationMatrix.iloc[0:0]
         calculateFitness()
-
+    
         if(minDist == m):
             counter += 1 
         else:
-            counter = 0 
+            counter = 0
+            end_point = i + dead_count 
 
-        if (counter == 100):
+        if (counter == dead_count):
             log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
+            #plt.savefig("./logs/Attribute_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate,))
             break 
         i+=1 
+        printProgressBar(i, end_point , prefix = 'Generation:', suffix = 'Evolved', length = 40)
     #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
-        
+
+#Graphing
+def graphing(): 
+    
+
+    plt.figure(1)
+    x = np.arange(len(fitness_curve))
+    y = fitness_curve
+    plt.title(data)
+    plt.plot(x,y)
+    plt.xlabel('Generations')
+    plt.ylabel('Distance')
+    plt.savefig("./logs/G_{}_{}_{}.png".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")))
+    print("Fitness curve saved to file.")
+
+    plt.figure(2)
+    x_co=[]
+    y_co=[]
+    plt.scatter(cityCoord.iloc[:,0], cityCoord.iloc[:,1], c="r")
+
+    for i in bestRoute:
+        x_co.append(cityCoord.iloc[i,0])
+        y_co.append(cityCoord.iloc[i,1])
+    x_co.append(cityCoord.iloc[0,0])
+    y_co.append(cityCoord.iloc[0,1])
+    plt.plot(x_co,y_co)
+
+
+    plt.show()    
 
 
 #Data Logging
-fname = "./logs/test_log/TSP_" + str(populationSize) + "_" + str(mutationRate) + "_"+ datetime.now().strftime("%d-%m-%y %H_%M") + ".txt"
+fname = "./logs/test_log/TSP_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + str(populationSize) + "_" + str(mutationRate) + ".txt"
 log = open(str(fname), "w")
 log.write("TSP USING GA\nDeveloped by Jugen Gawande\nRun Test ")
 log.write(str(datetime.now()))
-log.write("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \n".format(pop =populationSize, mut = mutationRate))
+log.write("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
+
+print("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
 
 
+data_fname = "./dataset/" + data + ".txt"   #Select data file to use
 
-data_fname = data + ".txt"   #Select data file to use
-addCity_using_coords()
-
+if data_type_flag == 0:
+    addCity_using_coords()
+else:
+    addCity_using_dist()
 
 #Initialize pandas dataframes
-distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
+
 populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 
+
 #Run Genetic Algorithm
-generateDistMatrix()
+if distanceMatrix.empty == True:
+    generateDistMatrix()
 generateInitPop()
 nextGeneration()
-
 
 log.write("Algorithm Completed.\n")
 log.write("MINIMAL DISTANCE={}\n".format(minDist))
 log.write("BEST ROUTE FOUND={}\n".format(bestRoute))
 log.close()
+print("Log file generated.")
+print("\nMINIMAL DISTANCE={}\nROUTE MINIMIZED={}".format(minDist, bestRoute))
 
-with open("./logs/FC_{}_{}_{}.csv".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")), "w") as f:
+with open("./logs/FitnessCurve_{}_{}_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate), "w") as f:
     f.write(str(fitness_curve))
 
-
-#Graphing 
-import matplotlib 
-import matplotlib.pyplot as plt
-
-plt.figure(1)
-x = np.arange(len(fitness_curve))
-y = fitness_curve
-plt.title(data)
-plt.plot(x,y)
-plt.xlabel('Generations')
-plt.ylabel('Distance')
-
-plt.figure(2)
-x_co=[]
-y_co=[]
-plt.scatter(cityCoord.iloc[:,0], cityCoord.iloc[:,1], c="r")
-
-for i in bestRoute:
-    x_co.append(cityCoord.iloc[i,0])
-    y_co.append(cityCoord.iloc[i,1])
-x_co.append(cityCoord.iloc[0,0])
-y_co.append(cityCoord.iloc[0,1])
-plt.plot(x_co,y_co)
+graphing()
 
 
-plt.show()
-plt.savefig("./logs/G_{}_{}_{}.png".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")))
 
-
-print(minDist, bestRoute)
-print("-------------Done!------------")
-
-
+print("Done!")

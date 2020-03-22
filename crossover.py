@@ -8,9 +8,9 @@ def OC_Single(parentA, parentB):
     childA = [] 
     childB = []
 
-    childA.append(parentB[:r])
-    childB.append(parentA[:r])
-    print(type(childA))
+    childA = list(parentB[:r])
+    childB = list(parentA[:r])
+
     for gene in np.nditer(parentA, flags=["refs_ok"]):
         if gene in childA:
             continue
