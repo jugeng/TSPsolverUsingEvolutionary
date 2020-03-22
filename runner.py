@@ -10,11 +10,12 @@ import pandas as pd
 from os import system
 
 import crossover
+import mutation
 
 #Controller Variables
 numberOfCities = 0
-populationSize = 86
-mutationRate = 0.05
+populationSize = 500
+mutationRate = 0.4
 genCount = 500
 
 
@@ -44,7 +45,7 @@ def generateDistMatrix():
             temp_dist.append(float(distance))   #Using python list comprehension for better performance
 
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-    #print(distanceMatrix)
+    print(distanceMatrix)
   
 
 def generateInitPop():
@@ -79,7 +80,8 @@ def matingPoolSelection():
     
 
 def calculateFitness():
-    global totalFitness, fitnessMatrix, minDist, fitness_curve
+    global totalFitness, fitnessMatrix, minDist, fitness_curve, bestRoute
+
     fitness =[]
     for i,individual in populationMatrix.iterrows():
         distance = 0
@@ -100,32 +102,42 @@ def calculateFitness():
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)
-    #print(minDist)
+    print(minDist)
 
 
 def calculateDistance(loc_1, loc_2):
     return distanceMatrix.iat[loc_1,loc_2]
 
 
-def mutation():
-    return True
+def mutateChild(gene):
+    global mutationRate
+    r = random.random()
+    if r < mutationRate:
+        return mutation.Twors(gene)
 
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute
 
     counter = 0
-    for i in range(genCount):
+    i=0
+    while(1):
+    #for i in range(genCount):
+        i+=1
+
+        _ = system('cls')  #refresh and clear terminal window
+
         print("Generation: ", i+1)
+
         m = minDist
         newGen = []
+
         while (len(newGen)!= populationSize):
             parentA = matingPoolSelection()
             parentB = matingPoolSelection()
-            childA, childB = crossover.orderedCrossover_SingleCut(parentA, parentB)
-            #mutation(childA)
-            #mutation(childB)
-            newGen.append(childA)
-            newGen.append(childB) 
+            child = crossover.orderedCrossover_SingleCut(parentA, parentB)
+            mutateChild(child)
+            newGen.append(child)
+
        
         nextGenerationMatrix = nextGenerationMatrix.append(newGen)
         populationMatrix.update(nextGenerationMatrix)
@@ -140,16 +152,16 @@ def nextGeneration():
         if (counter == 100):
             break  
         
-        _ = system('cls')  #refresh and clear terminal window
+        
   
 #Enter city co-ordinates into to the program. Using an external coords file to import data
 
 temp_list = []
-with open("test_data.txt", "r") as f:
-#with open("att48_xy.txt", "r") as f:
+#with open("test_data.txt", "r") as f:
+with open("lau15_xy.txt", "r") as f:
     for line in f:
         x, y = line.split()
-        temp_list.append([int(x),int(y)])  #Convert to float for accuracy
+        temp_list.append([float(x),float(y)])  #Convert to float for accuracy
 
 cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])  #Initiating pandas dataframe
 
