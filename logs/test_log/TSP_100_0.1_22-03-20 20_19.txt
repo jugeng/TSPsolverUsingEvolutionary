@@ -1,0 +1,6 @@
+TSP USING GA
+Developed by Jugen Gawande
+Run Test 2020-03-22 20:19:41.834122
+POPULATION SIZE=100 
+MUTATION RATE=0.1 
+Successfully added 15 cities from data.

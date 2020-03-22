@@ -15,10 +15,11 @@ import mutation
 from datetime import datetime
 
 #Controller Variables
-numberOfCities = 0
-populationSize = 300
-mutationRate = 0.5
+data = "test_data"
+populationSize = 100
+mutationRate = 0.1
 genCount = 500
+numberOfCities = 0
 
 
 #Calculators
@@ -31,6 +32,7 @@ bestRoute = []
 #Data-plotting
 fitness_curve = []
 
+
 def addCity_using_coords():
     global numberOfCities, cityCoord
     
@@ -39,9 +41,7 @@ def addCity_using_coords():
         for line in f:
             x, y = line.split()
             temp_list.append([float(x),float(y)])  #Convert to float for accuracy
-
-    cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])  #Initiating pandas dataframe
-
+        cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
     numberOfCities =  len(cityCoord) 
     if numberOfCities > 0:
         log.write("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
@@ -70,6 +70,8 @@ def generateInitPop():
     global numberOfCities, populationSize
     
     pop = np.arange(numberOfCities)
+    pop = np.append(pop, [0], axis=0)
+  
     populationMatrix.loc[len(populationMatrix)] = pop
   
     for i in range(populationSize-1):
@@ -152,12 +154,14 @@ def nextGeneration():
         m = minDist
         newGen = []
 
-        while (len(newGen)!= populationSize-1):
+        while (len(newGen)!= populationSize-2):
             parentA = matingPoolSelection()
             parentB = matingPoolSelection()
-            child = crossover.orderedCrossover_SingleCut(parentA, parentB)
-            mutateChild(child)
-            newGen.append(child)
+            childA, childB = crossover.cycleCrossover(parentA, parentB)
+            mutateChild(childA)
+            mutateChild(childB)
+            newGen.append(childA)
+            newGen.append(childB)
 
        
         nextGenerationMatrix = nextGenerationMatrix.append(newGen)
@@ -170,7 +174,7 @@ def nextGeneration():
         else:
             counter = 0 
 
-        if (counter == 50):
+        if (counter == 20):
             log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
             break  
     #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
@@ -185,10 +189,8 @@ log.write(str(datetime.now()))
 log.write("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \n".format(pop =populationSize, mut = mutationRate))
 
 
-  
 
-
-data_fname = "att48_xy" + ".txt"   #Select data file to use
+data_fname = data + ".txt"   #Select data file to use
 addCity_using_coords()
 
 
@@ -216,14 +218,25 @@ with open("./logs/FC_{}_{}_{}.csv".format(populationSize,mutationRate,datetime.n
 import matplotlib 
 import matplotlib.pyplot as plt
 
-
+plt.figure(1)
 x = np.arange(len(fitness_curve))
 y = fitness_curve
+plt.title(data)
 plt.plot(x,y)
-
 plt.xlabel('Generations')
 plt.ylabel('Distance')
 
+plt.figure(2)
+x_co=[]
+y_co=[]
+plt.scatter(cityCoord.iloc[:,0], cityCoord.iloc[:,1])
+for i in bestRoute:
+    x_co.append(cityCoord.iloc[i,0])
+    y_co.append(cityCoord.iloc[i,1])
+plt.plot(x_co,y_co)
+
+
+plt.show()
 plt.savefig("./logs/G_{}_{}_{}.png".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")))
 
 

@@ -2,7 +2,7 @@ import random
 import numpy as np
 
 def orderedCrossover_SingleCut(parentA, parentB):
-    geneCount = len(parentA)
+    geneCount = len(parentA) 
 
     r = random.randint(2, geneCount-1)
     childA = list(parentB[:r])
@@ -60,6 +60,3 @@ def cycleCrossover(parentA, parentB):
                 childB.append(int(gene))
 
     return childA, childB
-
-
-print(cycleCrossover(np.array([3,4,8,2,7,1,6,5]),np.array([4,2,5,1,6,8,3,7])))
