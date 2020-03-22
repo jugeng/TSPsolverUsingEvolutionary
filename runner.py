@@ -14,8 +14,8 @@ import mutation
 
 #Controller Variables
 numberOfCities = 0
-populationSize = 500
-mutationRate = 0.4
+populationSize = 200
+mutationRate = 0.3
 genCount = 500
 
 
@@ -80,7 +80,7 @@ def matingPoolSelection():
     
 
 def calculateFitness():
-    global totalFitness, fitnessMatrix, minDist, fitness_curve, bestRoute
+    global totalFitness, fitnessMatrix, minDist, fitness_curve, bestRoute, nextGenerationMatrix
 
     fitness =[]
     for i,individual in populationMatrix.iterrows():
@@ -98,10 +98,12 @@ def calculateFitness():
             minDist = distance
             bestRoute = np.copy(individual)
             
+            
     fitness_curve.append(minDist)
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)
+    nextGenerationMatrix = nextGenerationMatrix.append(individual)    #Elitism, moving the fittest gene to the new generation as is
     print(minDist)
 
 
@@ -131,7 +133,7 @@ def nextGeneration():
         m = minDist
         newGen = []
 
-        while (len(newGen)!= populationSize):
+        while (len(newGen)!= populationSize-1):
             parentA = matingPoolSelection()
             parentB = matingPoolSelection()
             child = crossover.orderedCrossover_SingleCut(parentA, parentB)
