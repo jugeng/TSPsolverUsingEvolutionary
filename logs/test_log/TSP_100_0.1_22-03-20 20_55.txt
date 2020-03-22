@@ -1,0 +1,11 @@
+TSP USING GA
+Developed by Jugen Gawande
+Run Test 2020-03-22 20:55:13.393911
+POPULATION SIZE=100 
+MUTATION RATE=0.1 
+Successfully added 15 cities from data.
+Initial Population Generated.
+GENERATIONS EVOLVED=58
+Algorithm Completed.
+MINIMAL DISTANCE=136.50840206685436
+BEST ROUTE FOUND=[0 5 7 10 6 8 9 14 1 4 2 11 12 13 3]

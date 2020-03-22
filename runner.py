@@ -15,8 +15,8 @@ import mutation
 from datetime import datetime
 
 #Controller Variables
-data = "test_data"
-populationSize = 100
+data = "att48_xy"
+populationSize = 200
 mutationRate = 0.1
 genCount = 500
 numberOfCities = 0
@@ -70,7 +70,6 @@ def generateInitPop():
     global numberOfCities, populationSize
     
     pop = np.arange(numberOfCities)
-    pop = np.append(pop, [0], axis=0)
   
     populationMatrix.loc[len(populationMatrix)] = pop
   
@@ -136,7 +135,7 @@ def mutateChild(gene):
     global mutationRate
     r = random.random()
     if r < mutationRate:
-        return mutation.RSM(gene)
+        return mutation.Twors(gene)
 
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute
@@ -157,7 +156,7 @@ def nextGeneration():
         while (len(newGen)!= populationSize-2):
             parentA = matingPoolSelection()
             parentB = matingPoolSelection()
-            childA, childB = crossover.cycleCrossover(parentA, parentB)
+            childA, childB = crossover.orderedCrossover_SingleCut(parentA, parentB)
             mutateChild(childA)
             mutateChild(childB)
             newGen.append(childA)
@@ -174,7 +173,7 @@ def nextGeneration():
         else:
             counter = 0 
 
-        if (counter == 20):
+        if (counter == 100):
             log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
             break  
     #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
@@ -229,10 +228,13 @@ plt.ylabel('Distance')
 plt.figure(2)
 x_co=[]
 y_co=[]
-plt.scatter(cityCoord.iloc[:,0], cityCoord.iloc[:,1])
+plt.scatter(cityCoord.iloc[:,0], cityCoord.iloc[:,1], c="r")
+
 for i in bestRoute:
     x_co.append(cityCoord.iloc[i,0])
     y_co.append(cityCoord.iloc[i,1])
+x_co.append(cityCoord.iloc[0,0])
+y_co.append(cityCoord.iloc[0,1])
 plt.plot(x_co,y_co)
 
 
