@@ -16,8 +16,8 @@ from datetime import datetime
 
 #Controller Variables
 numberOfCities = 0
-populationSize = 100
-mutationRate = 0.4
+populationSize = 300
+mutationRate = 0.5
 genCount = 500
 
 
@@ -31,6 +31,21 @@ bestRoute = []
 #Data-plotting
 fitness_curve = []
 
+def addCity_using_coords():
+    global numberOfCities, cityCoord
+    
+    temp_list = []
+    with open(str(data_fname), "r") as f:
+        for line in f:
+            x, y = line.split()
+            temp_list.append([float(x),float(y)])  #Convert to float for accuracy
+
+    cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])  #Initiating pandas dataframe
+
+    numberOfCities =  len(cityCoord) 
+    if numberOfCities > 0:
+        log.write("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
+    #print(cityCoord, numberOfCities)
 
 def generateDistMatrix():
 
@@ -119,7 +134,7 @@ def mutateChild(gene):
     global mutationRate
     r = random.random()
     if r < mutationRate:
-        return mutation.Twors(gene)
+        return mutation.RSM(gene)
 
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute
@@ -155,7 +170,7 @@ def nextGeneration():
         else:
             counter = 0 
 
-        if (counter == 30):
+        if (counter == 50):
             log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
             break  
     #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
@@ -163,34 +178,26 @@ def nextGeneration():
 
 
 #Data Logging
-fname = "./logs/test_log/TSP_" + str(populationSize) + "_" + str(mutationRate) + "_" + ".txt"
+fname = "./logs/test_log/TSP_" + str(populationSize) + "_" + str(mutationRate) + "_"+ datetime.now().strftime("%d-%m-%y %H_%M") + ".txt"
 log = open(str(fname), "w")
 log.write("TSP USING GA\nDeveloped by Jugen Gawande\nRun Test ")
 log.write(str(datetime.now()))
 log.write("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \n".format(pop =populationSize, mut = mutationRate))
 
 
-temp_list = []
   
-#Enter city co-ordinates into to the program. Using an external coords file to import data
 
-#with open("test_data.txt", "r") as f:
-with open("lau15_xy.txt", "r") as f:
-    for line in f:
-        x, y = line.split()
-        temp_list.append([float(x),float(y)])  #Convert to float for accuracy
 
-cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])  #Initiating pandas dataframe
+data_fname = "att48_xy" + ".txt"   #Select data file to use
+addCity_using_coords()
 
-numberOfCities =  len(cityCoord) 
-if numberOfCities > 0:
-    log.write("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
-#print(cityCoord, numberOfCities)
 
+#Initialize pandas dataframes
 distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
 populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 
+#Run Genetic Algorithm
 generateDistMatrix()
 generateInitPop()
 nextGeneration()
@@ -201,15 +208,23 @@ log.write("MINIMAL DISTANCE={}\n".format(minDist))
 log.write("BEST ROUTE FOUND={}\n".format(bestRoute))
 log.close()
 
-with open("./logs/FC_{}_{}.csv".format(populationSize,mutationRate), "w") as f:
+with open("./logs/FC_{}_{}_{}.csv".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")), "w") as f:
     f.write(str(fitness_curve))
 
+
+#Graphing 
 import matplotlib 
-import matplotlib.pyplot as plotting
+import matplotlib.pyplot as plt
 
 
-
+x = np.arange(len(fitness_curve))
+y = fitness_curve
 plt.plot(x,y)
+
+plt.xlabel('Generations')
+plt.ylabel('Distance')
+
+plt.savefig("./logs/G_{}_{}_{}.png".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")))
 
 
 print(minDist, bestRoute)
