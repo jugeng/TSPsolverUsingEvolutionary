@@ -13,20 +13,25 @@ import crossover
 import mutation
 
 from datetime import datetime
+import configparser 
 import matplotlib 
 import matplotlib.pyplot as plt
 
+
+CONFIG = configparser.ConfigParser()                                     
+CONFIG.read('controller.ini')
+
 #Controller Variables
-data = "test_data"
-data_type_flag = 0
-populationSize = 80
-mutationRate = 0.09
-genCount = 500
-numberOfCities = 0
-dead_count = 50
+data = CONFIG['DATASET']['FILE_NAME']
+data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
+populationSize = CONFIG.getint('ALGORITHM', 'POP_SIZE')
+mutationRate = CONFIG.getfloat('ALGORITHM', 'MUTATION_RATE')
+genCount = CONFIG.getint('ALGORITHM', 'GEN_COUNT')
+dead_count = CONFIG.getint('ALGORITHM', 'DEAD_COUNTER')
 
 
 #Calculators
+numberOfCities = 0
 totalFitness = 0
 
 #Result Store
@@ -35,7 +40,7 @@ bestRoute = []
 
 #Data-plotting
 fitness_curve = []
-
+generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
 
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
@@ -169,7 +174,7 @@ def matingPoolSelection():
     
 
 def calculateFitness():
-    global totalFitness, fitnessMatrix, minDist, fitness_curve, bestRoute, nextGenerationMatrix
+    global totalFitness, fitnessMatrix, minDist, fitness_curve, bestRoute, nextGenerationMatrix, generation_fitness
 
     fitness =[]
     for i,individual in populationMatrix.iterrows():
@@ -191,7 +196,8 @@ def calculateFitness():
     fitness_curve.append(minDist)
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
-    fitnessMatrix = np.divide(fitnessMatrix,totalFitness)       #Normalizing the fitness values between [0-1]
+    fitnessMatrix = np.divide(fitnessMatrix,totalFitness)   #Normalizing the fitness values between [0-1]
+    generation_fitness.loc[len(generation_fitness)] = fitnessMatrix  
     nextGenerationMatrix = nextGenerationMatrix.append(individual)    #Elitism, moving the fittest gene to the new generation as is
  
 
@@ -308,18 +314,19 @@ if distanceMatrix.empty == True:
 generateInitPop()
 nextGeneration()
 
+
+
 log.write("Algorithm Completed.\n")
 log.write("MINIMAL DISTANCE={}\n".format(minDist))
 log.write("BEST ROUTE FOUND={}\n".format(bestRoute))
 log.close()
 print("Log file generated.")
 print("\nMINIMAL DISTANCE={}\nROUTE MINIMIZED={}".format(minDist, bestRoute))
+print(generation_fitness)
 
 with open("./logs/curve_log/FitnessCurve_{}_{}_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate), "w") as f:
     f.write(str(fitness_curve))
 
 graphing()
-
-
 
 print("Done!")
