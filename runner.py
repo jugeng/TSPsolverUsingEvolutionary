@@ -203,7 +203,7 @@ def mutateChild(gene):
     global mutationRate
     r = random.random()
     if r < mutationRate:
-        return mutation.RSM(gene)
+        return mutation.Twors(gene)
 
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count
@@ -260,7 +260,7 @@ def graphing():
     plt.plot(x,y)
     plt.xlabel('Generations')
     plt.ylabel('Distance')
-    plt.savefig("./logs/G_{}_{}_{}.png".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")))
+    plt.savefig("./logs/output_curve/G_{}_{}_{}.png".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")))
     print("Fitness curve saved to file.")
 
     plt.figure(2)
@@ -315,7 +315,7 @@ log.close()
 print("Log file generated.")
 print("\nMINIMAL DISTANCE={}\nROUTE MINIMIZED={}".format(minDist, bestRoute))
 
-with open("./logs/FitnessCurve_{}_{}_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate), "w") as f:
+with open("./logs/curve_log/FitnessCurve_{}_{}_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate), "w") as f:
     f.write(str(fitness_curve))
 
 graphing()
