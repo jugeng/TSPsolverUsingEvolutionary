@@ -11,11 +11,14 @@ from os import system
 
 import crossover
 import mutation
+import visualize
 
 from datetime import datetime
 import configparser 
 import matplotlib 
 import matplotlib.pyplot as plt
+
+
 
 
 CONFIG = configparser.ConfigParser()                                     
@@ -150,7 +153,6 @@ def generateInitPop():
         np.random.shuffle(pop[1:])
         populationMatrix.loc[len(populationMatrix)] = pop
 
-    #print(populationMatrix)
     log.write("Initial Population Generated.\n")
     calculateFitness()
 
@@ -191,15 +193,16 @@ def calculateFitness():
         if distance < minDist:
             minDist = distance
             bestRoute = np.copy(individual)
-            
-            
+             
+    
     fitness_curve.append(minDist)
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)   #Normalizing the fitness values between [0-1]
     generation_fitness.loc[len(generation_fitness)] = fitnessMatrix  
-    nextGenerationMatrix = nextGenerationMatrix.append(individual)    #Elitism, moving the fittest gene to the new generation as is
- 
+    nextGenerationMatrix.loc[len(nextGenerationMatrix)] = bestRoute     #Elitism, moving the fittest gene to the new generation as is
+    nextGenerationMatrix.loc[len(nextGenerationMatrix)] = bestRoute 
+
 
 def calculateDistance(loc_1, loc_2):
     return distanceMatrix.iat[loc_1,loc_2]
@@ -226,7 +229,7 @@ def nextGeneration():
         m = minDist
         newGen = []
 
-        while (len(newGen)!= populationSize-2):
+        while (len(newGen) < populationSize-2):
             parentA = matingPoolSelection()
             parentB = matingPoolSelection()    
             childA, childB = crossover.OC_Single(parentA, parentB)
@@ -236,8 +239,8 @@ def nextGeneration():
             newGen.append(childB)
 
        
-        nextGenerationMatrix = nextGenerationMatrix.append(newGen[:populationSize])
-        populationMatrix.update(nextGenerationMatrix)
+        nextGenerationMatrix = nextGenerationMatrix.append(newGen[:populationSize-1])
+        populationMatrix = nextGenerationMatrix.copy()
         nextGenerationMatrix = nextGenerationMatrix.iloc[0:0]
         calculateFitness()
     
@@ -285,6 +288,7 @@ def graphing():
     plt.show()    
 
 
+
 #Data Logging
 fname = "./logs/test_log/TSP_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + str(populationSize) + "_" + str(mutationRate) + ".txt"
 log = open(str(fname), "w")
@@ -314,19 +318,21 @@ if distanceMatrix.empty == True:
 generateInitPop()
 nextGeneration()
 
-
-
 log.write("Algorithm Completed.\n")
 log.write("MINIMAL DISTANCE={}\n".format(minDist))
 log.write("BEST ROUTE FOUND={}\n".format(bestRoute))
+log.write("FITNESS CURVE:{} \n".format(fitness_curve))
+log.write("GENERATIONAL FITNESS:{} \n".format(generation_fitness))
 log.close()
 print("Log file generated.")
 print("\nMINIMAL DISTANCE={}\nROUTE MINIMIZED={}".format(minDist, bestRoute))
-print(generation_fitness)
 
-with open("./logs/curve_log/FitnessCurve_{}_{}_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate), "w") as f:
-    f.write(str(fitness_curve))
+with open("./logs/visualize_data.txt", "w") as f:
+    f.write(" ".join(str(item) for item in fitness_curve))
+    f.write("\n")
+generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
 
-graphing()
 
+
+#graphing()
 print("Done!")
