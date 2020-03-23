@@ -16,6 +16,8 @@ with open("./logs/visualize_data.txt", "r") as f:
         fit = item.split()
         generation_fitness.append(fit)
 
+print("Data loaded successfully")
+
 t = len(fitness_curve)
 
 #fit_fig = go.Figure(data=[go.Scatter(y = fitness_curve, x = np.arange(t)), go.Scatter(x = v, y = fitness_curve[x])],  layout =  {'title': 'Fitness Evolution'})
@@ -70,7 +72,7 @@ def update_gen_graph(v):
     graph_1 = go.Figure(data=data, layout=layout)
     graph_2 = go.Figure(data=data_1,  layout = layout_1)
 
-    
+     
     return (graph_1,graph_2)
 
 

@@ -1,8 +1,0 @@
-TSP USING GA
-Developed by Jugen Gawande
-Run Test 2020-03-23 18:50:53.112008
-POPULATION SIZE=80 
-MUTATION RATE=0.09 
-DATASET SELECTED=lau15_xy
-Successfully added 14 cities from data.
-Initial Population Generated.

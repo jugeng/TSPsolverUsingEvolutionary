@@ -13,7 +13,9 @@ import crossover
 import mutation
 import visualize
 
+
 from datetime import datetime
+import logging
 import configparser 
 import matplotlib 
 import matplotlib.pyplot as plt
@@ -80,9 +82,8 @@ def addCity_using_coords():
         cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
     numberOfCities =  len(cityCoord) 
     if numberOfCities > 0:
-        print("Number of cities=", numberOfCities)
         distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-        log.write("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
+        logger.info("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
     #print(cityCoord, numberOfCities)
 
 
@@ -105,6 +106,8 @@ def addCity_using_dist():
                     i = 0
                     distanceMatrix.loc[len(distanceMatrix)] = temp_dist
                     temp_dist = [] 
+
+    logger.info("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
 
 
 def generateDistMatrix():
@@ -153,8 +156,11 @@ def generateInitPop():
         np.random.shuffle(pop[1:])
         populationMatrix.loc[len(populationMatrix)] = pop
 
-    log.write("Initial Population Generated.\n")
-    calculateFitness()
+    logger.info("{} intial chromorsome populated".format(len(populationMatrix.index)))
+    if (len(populationMatrix.index) == populationSize):
+        
+        logger.info("Initial population generated successfully")
+        calculateFitness()
 
 
 def matingPoolSelection():
@@ -251,12 +257,13 @@ def nextGeneration():
             end_point = i + dead_count 
 
         if (counter == dead_count):
-            log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
+            
+            logger.info("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
             #plt.savefig("./logs/Attribute_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate,))
             break 
         i+=1 
         printProgressBar(i, end_point , prefix = 'Generation:', suffix = 'Evolved', length = 40)
-    #log.write("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
+    #logger.info("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
 
 #Graphing
 def graphing(): 
@@ -289,14 +296,27 @@ def graphing():
 
 
 
-#Data Logging
-fname = "./logs/test_log/TSP_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + str(populationSize) + "_" + str(mutationRate) + ".txt"
-log = open(str(fname), "w")
-log.write("TSP USING GA\nDeveloped by Jugen Gawande\nRun Test ")
-log.write(str(datetime.now()))
-log.write("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
 
-print("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
+
+
+#Data Logging
+fname = "./logs/test_log/TSP_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + data +"_"+ str(populationSize) + "_" + str(mutationRate) + ".log"
+
+logger = logging.getLogger('tsp_ga')
+logger.setLevel(logging.INFO)
+# create file handler which logs even debug messages
+fh = logging.FileHandler(fname)
+ch = logging.StreamHandler()
+fh.setLevel(logging.INFO)
+ch.setLevel(logging.INFO)
+
+logger.addHandler(fh)
+logger.addHandler(ch)
+
+
+logger.info("TSP USING Genetic Algorithm\nDeveloped by Jugen Gawande")
+logger.info(str(datetime.now()))
+logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
 
 
 data_fname = "./dataset/" + data + ".txt"   #Select data file to use
@@ -318,21 +338,20 @@ if distanceMatrix.empty == True:
 generateInitPop()
 nextGeneration()
 
-log.write("Algorithm Completed.\n")
-log.write("MINIMAL DISTANCE={}\n".format(minDist))
-log.write("BEST ROUTE FOUND={}\n".format(bestRoute))
-log.write("FITNESS CURVE:{} \n".format(fitness_curve))
-log.write("GENERATIONAL FITNESS:{} \n".format(generation_fitness))
-log.close()
-print("Log file generated.")
-print("\nMINIMAL DISTANCE={}\nROUTE MINIMIZED={}".format(minDist, bestRoute))
+logger.info("Algorithm Completed Successfully.")
+logger.info("MINIMAL DISTANCE={}".format(minDist))
+logger.info("BEST ROUTE FOUND={}".format(bestRoute))
+logger.info("FITNESS CURVE:\n{}".format(fitness_curve))
+
 
 with open("./logs/visualize_data.txt", "w") as f:
     f.write(" ".join(str(item) for item in fitness_curve))
     f.write("\n")
+
+logger.info("Generation Fitness:")
+generation_fitness.to_csv(fname, header=None, index=None, sep=' ', mode='a')
 generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
 
 
 
 #graphing()
-print("Done!")

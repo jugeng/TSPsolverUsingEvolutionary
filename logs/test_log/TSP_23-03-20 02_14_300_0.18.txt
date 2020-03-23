@@ -1,8 +1,0 @@
-TSP USING GA
-Developed by Jugen Gawande
-Run Test 2020-03-23 02:14:44.936430
-POPULATION SIZE=300 
-MUTATION RATE=0.18 
-DATASET SELECTED=att48_xy
-Successfully added 48 cities from data.
-Initial Population Generated.
