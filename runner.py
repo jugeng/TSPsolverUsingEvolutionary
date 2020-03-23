@@ -11,14 +11,13 @@ from os import system
 
 import crossover
 import mutation
-import visualize
-
 
 from datetime import datetime
 import logging
 import configparser 
 import matplotlib 
 import matplotlib.pyplot as plt
+import sys
 
 
 
@@ -75,15 +74,19 @@ def addCity_using_coords():
     global numberOfCities, cityCoord,distanceMatrix
 
     temp_list = []
-    with open(str(data_fname), "r") as f:
-        for line in f:
-            x, y = line.split()
-            temp_list.append([float(x),float(y)])  #Convert to float for accuracy
-        cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
-    numberOfCities =  len(cityCoord) 
-    if numberOfCities > 0:
-        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-        logger.info("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
+    try:
+        with open(str(data_fname), "r") as f:
+            for line in f:
+                x, y = line.split()
+                temp_list.append([float(x),float(y)])  #Convert to float for accuracy
+            cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
+        numberOfCities =  len(cityCoord) 
+        if numberOfCities > 0:
+            distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
+            logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
+    except:
+        logger.warning("Dataset could not be loaded")
+        sys.exit()
     #print(cityCoord, numberOfCities)
 
 
@@ -107,7 +110,7 @@ def addCity_using_dist():
                     distanceMatrix.loc[len(distanceMatrix)] = temp_dist
                     temp_dist = [] 
 
-    logger.info("Successfully added {cit} cities from data.\n".format(cit = numberOfCities))
+    logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
 
 
 def generateDistMatrix():
@@ -159,7 +162,7 @@ def generateInitPop():
     logger.info("{} intial chromorsome populated".format(len(populationMatrix.index)))
     if (len(populationMatrix.index) == populationSize):
         
-        logger.info("Initial population generated successfully")
+        logger.info("Initial population generated successfully\n")
         calculateFitness()
 
 
@@ -201,7 +204,7 @@ def calculateFitness():
             bestRoute = np.copy(individual)
              
     
-    fitness_curve.append(minDist)
+    fitness_curve.append(round(minDist, 2))
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)   #Normalizing the fitness values between [0-1]
@@ -228,8 +231,7 @@ def nextGeneration():
     end_point = dead_count
     printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 50)
 
-    while(1):
-    #for i in range(genCount):
+    while(i < genCount):
 
         #_ = system('cls')  #refresh and clear terminal window
         m = minDist
@@ -258,43 +260,73 @@ def nextGeneration():
 
         if (counter == dead_count):
             
-            logger.info("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))
-            #plt.savefig("./logs/Attribute_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"),populationSize,mutationRate,))
+            logger.info("GENERATIONS EVOLVED={gen}".format(gen=i))
+            
             break 
         i+=1 
         printProgressBar(i, end_point , prefix = 'Generation:', suffix = 'Evolved', length = 40)
-    #logger.info("GENERATIONS EVOLVED={gen}\n".format(gen=i+1))   #Enable if a stopping condition is maintained  
+    #logger.info("GENERATIONS EVOLVED={gen}\n".format(gen=i))   #Enable if a stopping condition is maintained  
 
 #Graphing
 def graphing(): 
-    
+    global fitness_curve
 
-    plt.figure(1)
+    fig = plt.figure(figsize = (15,8))
+    ax = fig.add_subplot(1, 1, 1)
+
+    # decreasing time
+    ax.set_xlabel('Gemeration', fontname="Calibri",fontweight="bold", fontsize=14)
+    ax.set_ylabel('Distance', fontname="Calibri",fontweight="bold", fontsize=14)
+
+    ax.spines['bottom'].set_color('#FFFAFF')
+    ax.spines['left'].set_color('#FFFAFF')
+    ax.spines['top'].set_color('#1B2533')
+    ax.spines['right'].set_color('#1B2533')
+
+    for axis in ['top','bottom','left','right']:
+        ax.spines[axis].set_linewidth(1)
+
+    ax.tick_params(axis='x', colors='#FFFAFF')
+    ax.tick_params(axis='y', colors='#FFFAFF')
+
+    ax.yaxis.label.set_color('#EEC643')
+    ax.xaxis.label.set_color('#EEC643')
+    ax.title.set_color('#FFFFFF')
+    fig.set_facecolor('#1B2533')
+    ax.set_facecolor('#1B2533')
+
+    plt.title("Fitness Evolution", loc='center' ,fontname="Calibri",fontweight="bold", fontsize=18)
+
     x = np.arange(len(fitness_curve))
     y = fitness_curve
-    plt.title(data)
-    plt.plot(x,y)
-    plt.xlabel('Generations')
-    plt.ylabel('Distance')
-    plt.savefig("./logs/output_curve/G_{}_{}_{}.png".format(populationSize,mutationRate,datetime.now().strftime("%d-%m-%y %H_%M")))
-    print("Fitness curve saved to file.")
 
-    plt.figure(2)
-    x_co=[]
-    y_co=[]
-    plt.scatter(cityCoord.iloc[:,0], cityCoord.iloc[:,1], c="r")
+    x1 = [0]
+    y1 = [fitness_curve[0]]
+    for i in range(len(fitness_curve)-1):
+        if fitness_curve[i] != fitness_curve[i+1]:
+            y1.append(fitness_curve[i+1])
+            x1.append(i+1)
 
-    for i in bestRoute:
-        x_co.append(cityCoord.iloc[i,0])
-        y_co.append(cityCoord.iloc[i,1])
-    x_co.append(cityCoord.iloc[0,0])
-    y_co.append(cityCoord.iloc[0,1])
-    plt.plot(x_co,y_co)
+    ax.scatter(x1,y1, color = "#F79824" )
+    ax.plot(x,y, color = ("#CC3363"), linewidth = 2)
 
+    fig.text(0.85, 0.82, '[INFO]', color = '#86BBD8')
+    fig.text(0.85, 0.8, 'MIN DIST={:.2f}'.format(minDist), color = '#86BBD8')
+    fig.text(0.85, 0.78, 'GEN EVOLVED={}'.format(len(fitness_curve)), color = '#86BBD8')
+    fig.text(0.85, 0.76, 'DATASET={}'.format(data), color = '#86BBD8')
+    fig.text(0.85, 0.74, 'POP SIZE={}'.format(populationSize), color = '#86BBD8')
+    fig.text(0.85, 0.72, 'MUT RATE={}'.format(mutationRate), color = '#86BBD8')
 
-    plt.show()    
+    logger.info("Fitness Curve generated")
 
-
+    """
+    for i in range(len(x1)):
+        ax.annotate("[{}]{}".format(x1[i],y1[i]), (x1[i], y1[i]), color='#FFFFFF', textcoords="offset points", xytext=(0,10))
+    """
+    hjhsda = "./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"))
+    fig.savefig("./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M")),facecolor=fig.get_facecolor(), edgecolor='none')
+    logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
+    #plt.show()
 
 
 
@@ -338,20 +370,35 @@ if distanceMatrix.empty == True:
 generateInitPop()
 nextGeneration()
 
-logger.info("Algorithm Completed Successfully.")
+
 logger.info("MINIMAL DISTANCE={}".format(minDist))
 logger.info("BEST ROUTE FOUND={}".format(bestRoute))
-logger.info("FITNESS CURVE:\n{}".format(fitness_curve))
+logger.info("\nAlgorithm Completed Successfully.")
+logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:len(fitness_curve) - dead_count + 1]))   #Will fail if all generations are exhausted
+
 
 
 with open("./logs/visualize_data.txt", "w") as f:
     f.write(" ".join(str(item) for item in fitness_curve))
     f.write("\n")
 
-logger.info("Generation Fitness:")
-generation_fitness.to_csv(fname, header=None, index=None, sep=' ', mode='a')
+rname = "./logs/test_{}.txt".format(data)
+
+try:
+    with open(rname, "r") as f:
+        for index, l in enumerate(f):
+            pass
+except:
+    index = -1
+
+with open(rname, "a") as f:
+    f.write("Test {}: {} {} {} {} {} {:.2f}\n".format(index+2 ,datetime.now(),CONFIG['OPERATOR']['CROSSOVER_OPERATOR'],CONFIG['OPERATOR']['MUTATION_OPERATOR'], populationSize, mutationRate, minDist ))
+
+logger.info("Test results recorded.")
+logger.info("Visualization Data Generated")
+
+generation_fitness = generation_fitness.round(5)
+generation_fitness.to_csv("./logs/curve_log/GenFit_data_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M")), header=None, index=None, sep=',', mode='a')
 generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
 
-
-
-#graphing()
+graphing()

@@ -5,22 +5,28 @@ import plotly
 from dash.dependencies import Input, Output
 import plotly.graph_objects as go
 import numpy as np
+from datetime import datetime 
+import plotly.io as pio
+
+
+import matplotlib.pyplot as plt
+
+
 
 
 generation_fitness =[]
 
 with open("./logs/visualize_data.txt", "r") as f:
     fitness = f.readline()
-    fitness_curve = fitness.split()
+    fitness_curve = list(float(item) for item in fitness.split())
     for item in f:
         fit = item.split()
-        generation_fitness.append(fit)
-
-print("Data loaded successfully")
+        tx =  list(float(item) for item in fit)
+        generation_fitness.append(tx)
 
 t = len(fitness_curve)
+print("Data successfully added")
 
-#fit_fig = go.Figure(data=[go.Scatter(y = fitness_curve, x = np.arange(t)), go.Scatter(x = v, y = fitness_curve[x])],  layout =  {'title': 'Fitness Evolution'})
 
 external_stylesheets = ['https://codepen.io/chriddyp/pen/bWLwgP.css']
 
@@ -43,7 +49,7 @@ app.layout = html.Div(
     ])
 )
 
-
+r = float(max(generation_fitness[0])) +0.005
 
 @app.callback([Output('generation-graph', 'figure'), Output('fitness-graph', 'figure')], [Input('gen-slider', 'value')])
 def update_gen_graph(v):
@@ -59,25 +65,22 @@ def update_gen_graph(v):
     layout = go.Layout(
         title= 'Generation:{}'.format(v), 
         yaxis = dict(
-            range = [0,0.1], 
+            range = [0,r ], 
             title = 'Fitness'))
 
     
 
-    data_1 = [go.Scatter(y = fitness_curve, x = np.arange(t)), 
+    data_1 = [go.Scatter(y = fitness_curve, x = np.arange(t), marker = dict(line = dict(color = 'crimson')) , showlegend = False), 
         go.Scatter(x = [v], y = [fitness_curve[v]], mode='markers' )]
    
-    layout_1 = go.Layout(title = "Fitness Curve")
+    layout_1 = go.Layout(title = "Fitness Curve",width=800, height=500, autosize=False)
     
     graph_1 = go.Figure(data=data, layout=layout)
     graph_2 = go.Figure(data=data_1,  layout = layout_1)
 
-     
     return (graph_1,graph_2)
 
 
 
 if __name__ == '__main__':
     app.run_server(debug=True)
-
-#z = generation_fitness[v]
