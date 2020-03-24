@@ -1,22 +1,26 @@
 import dash
 import dash_core_components as dcc
 import dash_html_components as html
-import plotly
 from dash.dependencies import Input, Output
+
+import plotly
 import plotly.graph_objects as go
-import numpy as np
-from datetime import datetime 
 import plotly.io as pio
 
+import numpy as np
+from datetime import datetime
+import sys
 
 import matplotlib.pyplot as plt
 
-
-
-
 generation_fitness =[]
+f_name = "./logs/visualize_data.txt"
 
-with open("./logs/visualize_data.txt", "r") as f:
+if(len(sys.argv) == 2):
+    f_name = "./logs/"+ sys.argv[1] +".txt"
+    print(f_name)
+
+with open(f_name, "r") as f:
     fitness = f.readline()
     fitness_curve = list(float(item) for item in fitness.split())
     for item in f:
@@ -34,8 +38,8 @@ app = dash.Dash(__name__, external_stylesheets=external_stylesheets)
 app.layout = html.Div(
     html.Div([
         html.H3('Genetic Algorithm Visualization'),
-        html.H4('Generations Evolved {}'.format(t)),
-        html.H4('Minimum Distance {:.2}'.format(min(fitness_curve))),
+        html.H5('Generations Evolved {}'.format(t)),
+        html.H5('Minimum Distance {:.2f}'.format(min(fitness_curve))),
         dcc.Graph(id='fitness-graph') ,
         dcc.Slider(
             id='gen-slider',
@@ -49,7 +53,7 @@ app.layout = html.Div(
     ])
 )
 
-r = float(max(generation_fitness[0])) +0.005
+r = float(max(generation_fitness[0])) + 0.005
 
 @app.callback([Output('generation-graph', 'figure'), Output('fitness-graph', 'figure')], [Input('gen-slider', 'value')])
 def update_gen_graph(v):

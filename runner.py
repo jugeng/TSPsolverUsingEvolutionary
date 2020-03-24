@@ -17,7 +17,9 @@ import logging
 import configparser 
 import matplotlib 
 import matplotlib.pyplot as plt
+import matplotlib.patches as patches
 import sys
+from time import process_time
 
 
 
@@ -37,6 +39,7 @@ dead_count = CONFIG.getint('ALGORITHM', 'DEAD_COUNTER')
 #Calculators
 numberOfCities = 0
 totalFitness = 0
+genEvolved = 0
 
 #Result Store
 minDist = math.inf
@@ -45,6 +48,10 @@ bestRoute = []
 #Data-plotting
 fitness_curve = []
 generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
+
+#Performance Measure
+s_t = 0.0
+e_t = 0.0
 
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
@@ -71,7 +78,10 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
 
 
 def addCity_using_coords():
-    global numberOfCities, cityCoord,distanceMatrix
+    
+    global numberOfCities, cityCoord,distanceMatrix, s_t, e_t
+
+    s_t = process_time()
 
     temp_list = []
     try:
@@ -88,12 +98,12 @@ def addCity_using_coords():
         logger.warning("Dataset could not be loaded")
         sys.exit()
     #print(cityCoord, numberOfCities)
-
+    
 
 def addCity_using_dist():
     
-    global distanceMatrix, numberOfCities 
-
+    global distanceMatrix, numberOfCities, s_t, e_t
+    s_t = process_time()
     temp_dist = []
     with open(str(data_fname), "r") as f:
         numberOfCities = int(f.readline())
@@ -111,11 +121,13 @@ def addCity_using_dist():
                     temp_dist = [] 
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
+    e_t = process_time()
+    logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
 
 
 def generateDistMatrix():
 
-    global distanceMatrix
+    global distanceMatrix, s_t, e_t
     global numberOfCities
     
     for i in range(numberOfCities):
@@ -128,7 +140,9 @@ def generateDistMatrix():
             temp_dist.append(float(distance))   #Using python list comprehension for better performance
 
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-    
+
+    e_t = process_time()
+    logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
     #print(distanceMatrix)
   
 
@@ -224,12 +238,14 @@ def mutateChild(gene):
         return mutation.Twors(gene)
 
 def nextGeneration():
-    global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count
+    global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count, genEvolved,s_t, e_t
 
     counter = 0
     i=0
     end_point = dead_count
     printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 50)
+
+    s_t = process_time()
 
     while(i < genCount):
 
@@ -259,23 +275,26 @@ def nextGeneration():
             end_point = i + dead_count 
 
         if (counter == dead_count):
-            
+            genEvolved = len(fitness_curve)
             logger.info("GENERATIONS EVOLVED={gen}".format(gen=i))
-            
+            e_t = process_time()
+            logger.info("CPU execution time: {}".format(e_t-s_t))
             break 
         i+=1 
         printProgressBar(i, end_point , prefix = 'Generation:', suffix = 'Evolved', length = 40)
     #logger.info("GENERATIONS EVOLVED={gen}\n".format(gen=i))   #Enable if a stopping condition is maintained  
 
+
+
 #Graphing
 def graphing(): 
-    global fitness_curve
+    global fitness_curve, genEvolved
 
     fig = plt.figure(figsize = (15,8))
     ax = fig.add_subplot(1, 1, 1)
 
     # decreasing time
-    ax.set_xlabel('Gemeration', fontname="Calibri",fontweight="bold", fontsize=14)
+    ax.set_xlabel('Generation', fontname="Calibri",fontweight="bold", fontsize=14)
     ax.set_ylabel('Distance', fontname="Calibri",fontweight="bold", fontsize=14)
 
     ax.spines['bottom'].set_color('#FFFAFF')
@@ -289,35 +308,55 @@ def graphing():
     ax.tick_params(axis='x', colors='#FFFAFF')
     ax.tick_params(axis='y', colors='#FFFAFF')
 
-    ax.yaxis.label.set_color('#EEC643')
-    ax.xaxis.label.set_color('#EEC643')
-    ax.title.set_color('#FFFFFF')
+    ax.yaxis.label.set_color('#1B9AAA')
+    ax.xaxis.label.set_color('#1B9AAA')
+    ax.title.set_color('#EEC643')
     fig.set_facecolor('#1B2533')
     ax.set_facecolor('#1B2533')
 
-    plt.title("Fitness Evolution", loc='center' ,fontname="Calibri",fontweight="bold", fontsize=18)
+    ax.grid(True,linewidth = 0.1)
 
-    x = np.arange(len(fitness_curve))
+    plt.title("Fitness Evolution Curve", loc='center' ,fontname="Calibri",fontweight="bold", fontsize=18)
+
+
+    x = np.arange(genEvolved)
     y = fitness_curve
 
     x1 = [0]
     y1 = [fitness_curve[0]]
-    for i in range(len(fitness_curve)-1):
+    for i in range(genEvolved-1):
         if fitness_curve[i] != fitness_curve[i+1]:
             y1.append(fitness_curve[i+1])
             x1.append(i+1)
 
     ax.scatter(x1,y1, color = "#F79824" )
     ax.plot(x,y, color = ("#CC3363"), linewidth = 2)
+    #ax.barh(y1,x1, color = ("#DEF4C6"), height = 0.08, alpha = 0.2 )
 
-    fig.text(0.85, 0.82, '[INFO]', color = '#86BBD8')
-    fig.text(0.85, 0.8, 'MIN DIST={:.2f}'.format(minDist), color = '#86BBD8')
-    fig.text(0.85, 0.78, 'GEN EVOLVED={}'.format(len(fitness_curve)), color = '#86BBD8')
-    fig.text(0.85, 0.76, 'DATASET={}'.format(data), color = '#86BBD8')
-    fig.text(0.85, 0.74, 'POP SIZE={}'.format(populationSize), color = '#86BBD8')
-    fig.text(0.85, 0.72, 'MUT RATE={}'.format(mutationRate), color = '#86BBD8')
+    gap = int(genEvolved / 25)
+    plt.xticks(np.arange(0, genEvolved, gap ))
+
+    fig.text(0.8, 0.84, '[INFO]', color = '#86BBD8')
+    fig.text(0.8, 0.8, 'MIN DIST={:.2f}'.format(minDist), color = '#F5F1E3')
+    fig.text(0.8, 0.78, 'GEN EVOLVED={}'.format(genEvolved), color = '#F5F1E3')
+    fig.text(0.8, 0.76, 'DATASET={}'.format(data), color = '#F5F1E3')
+    fig.text(0.8, 0.74, 'POP SIZE={}'.format(populationSize), color = '#F5F1E3')
+    fig.text(0.8, 0.72, 'MUT RATE={}'.format(mutationRate), color = '#F5F1E3')
+
+    fig.text(0.62, 0.02, "TSP solved using Genetic Algorithm [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
 
     logger.info("Fitness Curve generated")
+
+    c=0.95
+    x = 0.01
+    for i in range(len(x1)):
+        if(c < 0.1):
+            c = 0.95
+            x = 0.92
+        fig.text(x,c,"[{}]{}".format(x1[i],y1[i]), fontsize=8, color = "#FAC9B8" )
+        c-=0.02
+
+    plt.subplots_adjust(left=0.15)
 
     """
     for i in range(len(x1)):
@@ -374,7 +413,7 @@ nextGeneration()
 logger.info("MINIMAL DISTANCE={}".format(minDist))
 logger.info("BEST ROUTE FOUND={}".format(bestRoute))
 logger.info("\nAlgorithm Completed Successfully.")
-logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:len(fitness_curve) - dead_count + 1]))   #Will fail if all generations are exhausted
+logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved - dead_count + 1]))   #Will fail if all generations are exhausted
 
 
 
@@ -382,7 +421,7 @@ with open("./logs/visualize_data.txt", "w") as f:
     f.write(" ".join(str(item) for item in fitness_curve))
     f.write("\n")
 
-rname = "./logs/test_{}.txt".format(data)
+rname = "./logs/test_{}.csv".format(data)
 
 try:
     with open(rname, "r") as f:
@@ -392,7 +431,7 @@ except:
     index = -1
 
 with open(rname, "a") as f:
-    f.write("Test {}: {} {} {} {} {} {:.2f}\n".format(index+2 ,datetime.now(),CONFIG['OPERATOR']['CROSSOVER_OPERATOR'],CONFIG['OPERATOR']['MUTATION_OPERATOR'], populationSize, mutationRate, minDist ))
+    f.write("Test {}, {}, {}, {}, {}, {}, {:.2f}\n".format(index+2 ,datetime.now(),CONFIG['OPERATOR']['CROSSOVER_OPERATOR'],CONFIG['OPERATOR']['MUTATION_OPERATOR'], populationSize, mutationRate, minDist ))
 
 logger.info("Test results recorded.")
 logger.info("Visualization Data Generated")
