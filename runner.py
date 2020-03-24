@@ -243,7 +243,7 @@ def nextGeneration():
     counter = 0
     i=0
     end_point = dead_count
-    printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 50)
+    printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 40)
 
     s_t = process_time()
 
@@ -362,7 +362,7 @@ def graphing():
     for i in range(len(x1)):
         ax.annotate("[{}]{}".format(x1[i],y1[i]), (x1[i], y1[i]), color='#FFFFFF', textcoords="offset points", xytext=(0,10))
     """
-    hjhsda = "./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"))
+    hjhsda = "./logs/output_curve/G_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, minDist)
     fig.savefig("./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M")),facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
     #plt.show()
