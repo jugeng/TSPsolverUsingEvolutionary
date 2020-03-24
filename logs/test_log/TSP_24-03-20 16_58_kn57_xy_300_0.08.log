@@ -1,0 +1,13 @@
+TSP USING Genetic Algorithm
+Developed by Jugen Gawande
+2020-03-24 16:58:11.237263
+
+POPULATION SIZE=300 
+MUTATION RATE=0.08 
+DATASET SELECTED=kn57_xy
+
+Successfully added 57 cities from data.
+CPU took 0.78125 to complete data loading and distance matrix building
+300 intial chromorsome populated
+Initial population generated successfully
+
