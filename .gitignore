@@ -16,4 +16,5 @@
 /__pycache__
 
 #ignore config file
-/controller.ini
+controller.ini
+
