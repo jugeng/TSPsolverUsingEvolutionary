@@ -33,7 +33,8 @@ populationSize = CONFIG.getint('ALGORITHM', 'POP_SIZE')
 mutationRate = CONFIG.getfloat('ALGORITHM', 'MUTATION_RATE')
 genCount = CONFIG.getint('ALGORITHM', 'GEN_COUNT')
 dead_count = CONFIG.getint('ALGORITHM', 'DEAD_COUNTER')
-
+cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
+print(cx_opt, type(cx_opt))
 
 #Calculators
 numberOfCities = 0
@@ -243,8 +244,16 @@ def nextGeneration():
 
         while (len(newGen) < populationSize-2):
             parentA = matingPoolSelection()
-            parentB = matingPoolSelection()    
-            childA, childB = crossover.OC_Single(parentA, parentB)
+            parentB = matingPoolSelection()
+            if (cx_opt == "OC_Single"):
+                childA, childB = crossover.OC_Single(parentA, parentB)
+            elif (cx_opt == "cycleCrossover"):
+                childA, childB = crossover.cycleCrossover(parentA, parentB)
+            else:
+                logger.warning("Unknown crossover operator configured.")
+                logger.warning("Model cannot be executed")
+                sys.exit()
+
             mutateChild(childA)
             mutateChild(childB)
             newGen.append(childA)
