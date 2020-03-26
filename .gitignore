@@ -10,3 +10,6 @@
 #Ignore test records
 /logs/*.txt 
 !/logs/visualize.txt  
+
+#Ignore python cache
+/__pycache__
