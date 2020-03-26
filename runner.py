@@ -17,7 +17,6 @@ import logging
 import configparser 
 import matplotlib 
 import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 import sys
 from time import process_time
 
