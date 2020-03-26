@@ -8,8 +8,12 @@
 /logs/output_curve/*.png
 
 #Ignore test records
-/logs/*.txt 
-!/logs/visualize.txt  
+/logs/*.csv 
+
+/logs/visualize.txt  
 
 #Ignore python cache
 /__pycache__
+
+#ignore config file
+/controller.ini
