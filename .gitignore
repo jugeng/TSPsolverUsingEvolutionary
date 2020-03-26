@@ -1,0 +1,12 @@
+#Ignore all log files
+*.log
+
+#Ignore fitness curve csv
+/logs/curve_log/*.csv
+
+#Ignore output graphs
+/logs/output_curve/*.png
+
+#Ignore test records
+/logs/*.txt 
+!/logs/visualize.txt  
