@@ -10,7 +10,7 @@
 #Ignore test records
 /logs/*.csv 
 
-/logs/visualize.txt  
+/logs/visualize_data.txt  
 
 #Ignore python cache
 /__pycache__
