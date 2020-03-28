@@ -155,7 +155,7 @@ def generateInitPop():
     logger.info("{} intial chromorsome populated".format(len(populationMatrix.index)))
     if (len(populationMatrix.index) == populationSize):
         
-        logger.info("Initial population generated successfully\n")
+        logger.info("Initial population generated successfully")
         calculateFitness()
 
 
@@ -268,9 +268,9 @@ def GA():
             counter = 0
             end_point = i + dead_count 
 
-        if (counter == dead_count or i == dead_count-1):
+        if (counter == dead_count or i == end_point-1):
             genEvolved = len(fitness_curve)
-            logger.info("GENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
+            logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
             e_t = process_time()
             logger.info("CPU execution time: {}".format(e_t-s_t))
             break 
@@ -387,7 +387,7 @@ def logging_setup():
 
     logger.info("TSP USING Genetic Algorithm\nDeveloped by Jugen Gawande")
     logger.info(str(datetime.now()))
-    logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
+    logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}".format(pop =populationSize, mut = mutationRate, name = data))
 
 
 #Controller Variables
@@ -409,7 +409,6 @@ logging_setup()
 data_fname = "./dataset/" + data + ".txt"   #Select data file to use
 
 if data_type_flag == 0:
-    addCity_using_coords()
     addCity_using_coords()
 
 else:
@@ -457,3 +456,5 @@ if(set_debug == True):
     generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
 
     graphing()
+
+logger.info("All done")
