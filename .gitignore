@@ -2,18 +2,18 @@
 *.log
 
 #Ignore fitness curve csv
-/logs/curve_log/*.csv
+logs/curve_log/*.csv
 
 #Ignore output graphs
-/logs/output_curve/*.png
+logs/output_curve/*.png
 
 #Ignore test records
-/logs/*.csv 
+logs/*.csv 
 
-/logs/visualize_data.txt  
+logs/visualize_data.txt  
 
 #Ignore python cache
-/__pycache__
+_pycache__/
 
 #ignore config file
 controller.ini

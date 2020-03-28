@@ -393,6 +393,8 @@ data_fname = "./dataset/" + data + ".txt"   #Select data file to use
 
 if data_type_flag == 0:
     addCity_using_coords()
+    addCity_using_coords()
+
 else:
     addCity_using_dist()
 
