@@ -66,25 +66,25 @@ def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, 
 @eel.expose
 def addCity_using_coords(city_array):
     
-    global numberOfCities, cityCoord,distanceMatrix, s_t, e_t
-     
+    global numberOfCities, cityCoord, distanceMatrix, s_t, e_t
     s_t = process_time()
     temp_list = []
-    try:
-        for city in city_array:
-                temp_list.append([float(city[0]),float(city[1])]) #Convert to float for accuracy
-        
-        cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])      #Initiating pandas dataframe
-        numberOfCities =  len(cityCoord) 
-        if numberOfCities > 0:
-            distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-            logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
-            generateDistMatrix()
+    
+    for city in city_array:
+        temp_list.append([float(city[0]),float(city[1])]) #Convert to float for accuracy
+    
+    cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])      #Initiating pandas dataframe
+    numberOfCities =  len(cityCoord) 
+    if numberOfCities > 0:
+        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
+        logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
+        generateDistMatrix()
 
+    return (cityCoord)
 
-    except:
-        logger.warning("Dataset could not be loaded")
-        sys.exit()
+    
+        #logger.warning("Dataset could not be loaded")
+        #sys.exit()
     #print(cityCoord, numberOfCities)
     
 
@@ -403,10 +403,9 @@ if(set_debug == True):
     logger.addHandler(fh)
 logger.addHandler(ch)
 
-
 logger.info("TSP USING Genetic Algorithm\nDeveloped by Jugen Gawande")
 logger.info(str(datetime.now()))
-logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
+logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut}\n\n".format(pop =populationSize, mut = mutationRate))
 
 
 @eel.expose
@@ -429,11 +428,9 @@ def initialize():
 def runAlgorithm():
     global generation_fitness, populationMatrix, nextGenerationMatrix
 
-
     #Run Genetic Algorithm
     generateInitPop()
     GA()
-
 
     logger.info("MINIMAL DISTANCE={}".format(minDist))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
