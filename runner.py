@@ -223,10 +223,17 @@ def nextGeneration():
     while (len(newGen) < populationSize-2):
         parentA = matingPoolSelection()
         parentB = matingPoolSelection()
+
+
+
         if (cx_opt == "OC_Single"):
             childA, childB = crossover.OC_Single(parentA, parentB)
         elif (cx_opt == "cycleCrossover"):
             childA, childB = crossover.cycleCrossover(parentA, parentB)
+        elif (cx_opt == "OC_Multi"):
+            childA, childB = crossover.OC_Multi(parentA, parentB)
+        elif (cx_opt == "PMS"):
+            childA, childB = crossover.PMS(parentA, parentB)
         else:
             logger.warning("Unknown crossover operator configured.")
             logger.warning("Model cannot be executed")
