@@ -251,9 +251,6 @@ def nextGeneration():
     calculateFitness()
 
 
-
-
-
 def GA():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count, genEvolved,s_t, e_t
 
@@ -275,7 +272,7 @@ def GA():
             counter = 0
             end_point = i + dead_count 
 
-        if (counter == dead_count or i == end_point-1):
+        if (counter == dead_count or i == genCount-1 ):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
             e_t = process_time()
@@ -320,7 +317,7 @@ def graphing():
     plt.title("Fitness Evolution Curve", loc='center' ,fontname="Calibri",fontweight="bold", fontsize=18)
 
 
-    x = np.arange(genEvolved)
+    x = np.arange(len(fitness_curve))
     y = fitness_curve
 
     x1 = [0]
@@ -366,8 +363,8 @@ def graphing():
     """
     
     if(set_debug == True):
-        hjhsda = "./logs/output_curve/G_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, minDist)
-        fig.savefig("./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M")),facecolor=fig.get_facecolor(), edgecolor='none')
+        hjhsda = "./logs/output_curve/G_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist))
+        fig.savefig(hjhsda, facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
     #plt.show()   #To view graph after generating 
 
