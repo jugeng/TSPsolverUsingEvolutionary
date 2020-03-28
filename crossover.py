@@ -26,6 +26,7 @@ def OC_Single(parentA, parentB):
 
     return childA, childB
 
+
 def cycleCrossover(parentA, parentB):
     geneCount = len(parentA)
 
@@ -61,6 +62,7 @@ def cycleCrossover(parentA, parentB):
                 childB.append(int(gene))
 
     return childA, childB
+
 
 def PMS(parentA, parentB):
     geneCount = len(parentA)
