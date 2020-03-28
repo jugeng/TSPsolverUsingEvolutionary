@@ -21,21 +21,8 @@ import sys
 from time import process_time
 
 
-
-
 CONFIG = configparser.ConfigParser()                                     
 CONFIG.read('controller.ini')
-
-#Controller Variables
-data = CONFIG['DATASET']['FILE_NAME']
-data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
-populationSize = CONFIG.getint('ALGORITHM', 'POP_SIZE')
-mutationRate = CONFIG.getfloat('ALGORITHM', 'MUTATION_RATE')
-genCount = CONFIG.getint('ALGORITHM', 'GEN_COUNT')
-dead_count = CONFIG.getint('ALGORITHM', 'DEAD_COUNTER')
-cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
-set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
-print(cx_opt, type(cx_opt))
 
 #Calculators
 numberOfCities = 0
@@ -48,7 +35,7 @@ bestRoute = []
 
 #Data-plotting
 fitness_curve = []
-generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
+
 
 #Performance Measure
 s_t = 0.0
@@ -73,6 +60,7 @@ def addCity_using_coords():
 
     s_t = process_time()
 
+
     temp_list = []
     try:
         with open(str(data_fname), "r") as f:
@@ -84,6 +72,7 @@ def addCity_using_coords():
         if numberOfCities > 0:
             distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
             logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
+            generateDistMatrix()
     except:
         logger.warning("Dataset could not be loaded")
         sys.exit()
@@ -228,6 +217,37 @@ def mutateChild(gene):
         return mutation.Twors(gene)
 
 def nextGeneration():
+    global nextGenerationMatrix, populationMatrix, genCount, bestRoute
+    newGen = []
+
+    while (len(newGen) < populationSize-2):
+        parentA = matingPoolSelection()
+        parentB = matingPoolSelection()
+        if (cx_opt == "OC_Single"):
+            childA, childB = crossover.OC_Single(parentA, parentB)
+        elif (cx_opt == "cycleCrossover"):
+            childA, childB = crossover.cycleCrossover(parentA, parentB)
+        else:
+            logger.warning("Unknown crossover operator configured.")
+            logger.warning("Model cannot be executed")
+            sys.exit()
+
+        mutateChild(childA)
+        mutateChild(childB)
+        newGen.append(childA)
+        newGen.append(childB)
+
+       
+    nextGenerationMatrix = nextGenerationMatrix.append(newGen[:populationSize-1])
+    populationMatrix = nextGenerationMatrix.copy()
+    nextGenerationMatrix = nextGenerationMatrix.iloc[0:0]
+    calculateFitness()
+
+
+
+
+
+def GA():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count, genEvolved,s_t, e_t
 
     counter = 0
@@ -238,43 +258,19 @@ def nextGeneration():
     s_t = process_time()
 
     while(i < genCount):
-
-        #_ = system('cls')  #refresh and clear terminal window
         m = minDist
-        newGen = []
 
-        while (len(newGen) < populationSize-2):
-            parentA = matingPoolSelection()
-            parentB = matingPoolSelection()
-            if (cx_opt == "OC_Single"):
-                childA, childB = crossover.OC_Single(parentA, parentB)
-            elif (cx_opt == "cycleCrossover"):
-                childA, childB = crossover.cycleCrossover(parentA, parentB)
-            else:
-                logger.warning("Unknown crossover operator configured.")
-                logger.warning("Model cannot be executed")
-                sys.exit()
+        nextGeneration()
 
-            mutateChild(childA)
-            mutateChild(childB)
-            newGen.append(childA)
-            newGen.append(childB)
-
-       
-        nextGenerationMatrix = nextGenerationMatrix.append(newGen[:populationSize-1])
-        populationMatrix = nextGenerationMatrix.copy()
-        nextGenerationMatrix = nextGenerationMatrix.iloc[0:0]
-        calculateFitness()
-    
         if(minDist == m):
             counter += 1 
         else:
             counter = 0
             end_point = i + dead_count 
 
-        if (counter == dead_count):
+        if (counter == dead_count or i == dead_count-1):
             genEvolved = len(fitness_curve)
-            logger.info("GENERATIONS EVOLVED={gen}".format(gen=i))
+            logger.info("GENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
             e_t = process_time()
             logger.info("CPU execution time: {}".format(e_t-s_t))
             break 
@@ -331,7 +327,7 @@ def graphing():
     ax.plot(x,y, color = ("#CC3363"), linewidth = 2)
     #ax.barh(y1,x1, color = ("#DEF4C6"), height = 0.08, alpha = 0.2 )
 
-    gap = int(genEvolved / 25)
+    gap = math.ceil(genEvolved / 25)
     plt.xticks(np.arange(0, genEvolved, gap ))
 
     fig.text(0.8, 0.84, '[INFO]', color = '#86BBD8')
@@ -361,33 +357,54 @@ def graphing():
     for i in range(len(x1)):
         ax.annotate("[{}]{}".format(x1[i],y1[i]), (x1[i], y1[i]), color='#FFFFFF', textcoords="offset points", xytext=(0,10))
     """
-    hjhsda = "./logs/output_curve/G_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, minDist)
-    fig.savefig("./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M")),facecolor=fig.get_facecolor(), edgecolor='none')
+    
+    if(set_debug == True):
+        hjhsda = "./logs/output_curve/G_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, minDist)
+        fig.savefig("./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M")),facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
     #plt.show()   #To view graph after generating 
 
 
-
-
 #Data Logging
-fname = "./logs/test_log/TSP_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + data +"_"+ str(populationSize) + "_" + str(mutationRate) + ".log"
+def logging_setup():
+    global logger
+
+    fname = "./logs/test_log/TSP_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + data +"_"+ str(populationSize) + "_" + str(mutationRate) + ".log"
+
+    logger = logging.getLogger('tsp_ga')
+    logger.setLevel(logging.INFO)
+    # create file handler which logs even debug messages
+    if(set_debug == True): 
+        fh = logging.FileHandler(fname)
+        fh.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    
+    if(set_debug == True): 
+        logger.addHandler(fh)
+    logger.addHandler(ch)
+
+
+    logger.info("TSP USING Genetic Algorithm\nDeveloped by Jugen Gawande")
+    logger.info(str(datetime.now()))
+    logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
+
+
+#Controller Variables
+data = CONFIG['DATASET']['FILE_NAME']
+data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
+populationSize = CONFIG.getint('ALGORITHM', 'POP_SIZE')
+if (populationSize < 1):
+    logger.warning("Population size not enough")
+    sys.exit()
+mutationRate = CONFIG.getfloat('ALGORITHM', 'MUTATION_RATE')
+genCount = CONFIG.getint('ALGORITHM', 'GEN_COUNT')
+dead_count = CONFIG.getint('ALGORITHM', 'DEAD_COUNTER')
+cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
+set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
 
 logger = logging.getLogger('tsp_ga')
-logger.setLevel(logging.INFO)
-# create file handler which logs even debug messages
-fh = logging.FileHandler(fname)
-ch = logging.StreamHandler()
-fh.setLevel(logging.INFO)
-ch.setLevel(logging.INFO)
-
-logger.addHandler(fh)
-logger.addHandler(ch)
-
-
-logger.info("TSP USING Genetic Algorithm\nDeveloped by Jugen Gawande")
-logger.info(str(datetime.now()))
-logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}\n".format(pop =populationSize, mut = mutationRate, name = data))
-
+logging_setup()
 
 data_fname = "./dataset/" + data + ".txt"   #Select data file to use
 
@@ -399,46 +416,44 @@ else:
     addCity_using_dist()
 
 #Initialize pandas dataframes
-
+generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
 populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 
 
 #Run Genetic Algorithm
-if distanceMatrix.empty == True:
-    generateDistMatrix()
 generateInitPop()
-nextGeneration()
+GA()
 
 
 logger.info("MINIMAL DISTANCE={}".format(minDist))
 logger.info("BEST ROUTE FOUND={}".format(bestRoute))
 logger.info("\nAlgorithm Completed Successfully.")
-logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved - dead_count + 1]))   #Will fail if all generations are exhausted
+logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved]))   #Will fail if all generations are exhausted
 
 
+if(set_debug == True):
+    with open("./logs/visualize_data.txt", "w") as f:
+        f.write(" ".join(str(item) for item in fitness_curve))
+        f.write("\n")
 
-with open("./logs/visualize_data.txt", "w") as f:
-    f.write(" ".join(str(item) for item in fitness_curve))
-    f.write("\n")
+    rname = "./logs/test_{}.csv".format(data)
 
-rname = "./logs/test_{}.csv".format(data)
+    try:
+        with open(rname, "r") as f:
+            for index, l in enumerate(f):
+                pass
+    except:
+        index = -1
 
-try:
-    with open(rname, "r") as f:
-        for index, l in enumerate(f):
-            pass
-except:
-    index = -1
+    with open(rname, "a") as f:
+        f.write("Test {}, {}, {}, {}, {}, {}, {:.2f}\n".format(index+2 ,datetime.now(),CONFIG['OPERATOR']['CROSSOVER_OPERATOR'],CONFIG['OPERATOR']['MUTATION_OPERATOR'], populationSize, mutationRate, minDist ))
 
-with open(rname, "a") as f:
-    f.write("Test {}, {}, {}, {}, {}, {}, {:.2f}\n".format(index+2 ,datetime.now(),CONFIG['OPERATOR']['CROSSOVER_OPERATOR'],CONFIG['OPERATOR']['MUTATION_OPERATOR'], populationSize, mutationRate, minDist ))
+    logger.info("Test results recorded.")
+    logger.info("Visualization Data Generated")
 
-logger.info("Test results recorded.")
-logger.info("Visualization Data Generated")
+    generation_fitness = generation_fitness.round(5)
+    generation_fitness.to_csv("./logs/curve_log/GenFit_data_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M")), header=None, index=None, sep=',', mode='a')
+    generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
 
-generation_fitness = generation_fitness.round(5)
-generation_fitness.to_csv("./logs/curve_log/GenFit_data_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M")), header=None, index=None, sep=',', mode='a')
-generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
-
-graphing()
+    graphing()
