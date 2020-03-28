@@ -21,15 +21,11 @@ function readSingleFile(evt) {
                             }
                         })
                         array.push(city)
-                        add_to_list(city[0], city[1])
-                        
+                        add_to_list(city[0], city[1]) 
                     }; 
-                    
-
             });
             addCity();
         };
-
         r.onerror = function (e) {
             alert("Could not load file")
         };
@@ -42,8 +38,6 @@ function addCity() {
     d = eel.addCity_using_coords(array)((v) => {
         console.log(v);
     });
-
-
 }
 
 function algoRun() {
@@ -65,18 +59,15 @@ function algoRun() {
     } else {
         console.log("No cities added!")
     }
-
 }
 
 eel.expose(update_distance)
-
 function update_distance(val) {
 
     document.getElementById("minimum_distance").innerHTML = val
 }
 
 eel.expose(set_progress)
-
 function set_progress(n) {
     document.getElementById("prog_bar").value = n
 }
@@ -86,7 +77,6 @@ function add() {
     b = document.getElementById("city_y").value
     array.push([a, b])
     add_to_list(a, b)
-
 }
 
 function add_to_list(a, b) {
@@ -95,13 +85,56 @@ function add_to_list(a, b) {
         let ul = document.getElementById("city_list")
 
         city = document.createElement("li")
-        city.textContent = a + ", " + b
+        city.setAttribute("onmouseover", "hover_city(this)")
+        city.setAttribute("onmouseout", "hover_city_leave(this)")
+        let t1 = "block "+ (array.length-1).toString();
+        city.setAttribute("id", t1)
+
+        div = document.createElement("div")
+        div.setAttribute("id", "citycords") 
+        // cityname = document.createElement("h3")
+        // cityname.style.color = "#104a6b"
+        // cityname.textContent = "City " + array.length
+        cityco = document.createElement("p")
+        cityco.textContent = "Lat: "+ a + " Long:" + b
+        cityco.style.color = "#e6ebed"
+
+        deletebtn = document.createElement("button")
+        let t2 = "city "+ (array.length-1).toString();
+        deletebtn.setAttribute("id", t2)
+        deletebtn.setAttribute("onclick", "remove_city(this.id)")
+        deletebtn.textContent = "x"
+
+        //div.appendChild(cityname)
+        div.appendChild(cityco)
+        div.appendChild(deletebtn)
+               
+        city.appendChild(div)
 
         ul.appendChild(city)
 
     }
     document.getElementById("city_x").value = ""
     document.getElementById("city_y").value = ""
+}
+
+
+function remove_city(val) {
+    let x = val
+    x = x.split(" ")
+    var list = document.getElementById("city_list");
+    t1 = "block " + (x[1]).toString();
+    elem = document.getElementById(t1);
+    list.removeChild(elem);
+     array.splice(x[1], 1)
+}
+
+function hover_city(elem) {
+    elem.style.backgroundColor = "#161717"
+}
+
+function hover_city_leave(elem) {
+    elem.style.backgroundColor = "#242424"
 }
 
 function reset_array() {

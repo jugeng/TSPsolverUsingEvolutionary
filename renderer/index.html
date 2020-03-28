@@ -5,8 +5,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TSP Using GA</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
     <script defer src="app.js" type="text/javascript"></script>
     <script src="/eel.js" type="text/javascript"></script>
+
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -14,7 +17,10 @@
         <input type="text" id="city_x">
         <input type="text" id="city_y">
         <button onclick="add()" id="add">Add</button>
-        <ol id="city_list"></ol>
+        <div id="list_view">
+            <ul id="city_list"></ul>
+        </div>
+        
     </div>
 
     <button onclick="addCity()" id="push_city">Confirm Cities</button>

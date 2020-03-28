@@ -237,10 +237,15 @@ def nextGeneration():
             childA, childB = crossover.OC_Single(parentA, parentB)
         elif (cx_opt == "cycleCrossover"):
             childA, childB = crossover.cycleCrossover(parentA, parentB)
+        elif (cx_opt == "OC_Multi"):
+            childA, childB = crossover.OC_Multi(parentA, parentB)
+        elif (cx_opt == "PMS"):
+            childA, childB = crossover.PMS(parentA, parentB)
         else:
             logger.warning("Unknown crossover operator configured.")
             logger.warning("Model cannot be executed")
             sys.exit()
+
 
         mutateChild(childA)
         mutateChild(childB)
@@ -368,7 +373,7 @@ def graphing():
     
     if(set_debug == True):
         hjhsda = "./logs/output_curve/G_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, minDist)
-        fig.savefig("./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M")),facecolor=fig.get_facecolor(), edgecolor='none')
+        fig.savefig(hjhsda ,facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
     #plt.show()   #To view graph after generating 
 

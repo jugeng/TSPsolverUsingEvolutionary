@@ -1,0 +1,39 @@
+#list_view {
+    right:0px;
+    background-color: #242424;
+    width: 350px;
+    height: 800px;
+    overflow: scroll;
+    padding: 15px;
+    font-family: 'Nunito', sans-serif;
+    position: relative;
+}
+
+#citycords {
+    display: inline-flex;
+}
+
+#citycords button {
+    margin-right: 45px;
+    position: absolute;
+    right: 2px;
+    border-radius: 12px;
+    padding: 4px ;
+    height: 25px;
+    width: 25px;
+    background-color: #b9b9b9;
+    border: none;
+    color: rgb(255, 255, 255);
+}
+
+#city_list {
+    list-style-type: none;
+    margin-left: -25px;
+}
+
+#city_list li {
+    padding: 10px;
+    border-radius: 25px;
+}
+
+
