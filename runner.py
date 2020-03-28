@@ -34,6 +34,7 @@ mutationRate = CONFIG.getfloat('ALGORITHM', 'MUTATION_RATE')
 genCount = CONFIG.getint('ALGORITHM', 'GEN_COUNT')
 dead_count = CONFIG.getint('ALGORITHM', 'DEAD_COUNTER')
 cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
+set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
 print(cx_opt, type(cx_opt))
 
 #Calculators
@@ -363,7 +364,7 @@ def graphing():
     hjhsda = "./logs/output_curve/G_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, minDist)
     fig.savefig("./logs/output_curve/G_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M")),facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
-    #plt.show()
+    #plt.show()   #To view graph after generating 
 
 
 
