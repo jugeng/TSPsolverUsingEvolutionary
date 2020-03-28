@@ -70,27 +70,68 @@ def PMS(parentA, parentB):
 
     a = random.randint(1,geneCount-2)
     b = random.randint(a+1, geneCount-1)
-
+    
     print(a,b)
     print(parentA, parentB)
-
-    childA[:a] = parentA[:a]
-    childA[b-1:] = parentA[b-1:]
-    childB[:a] = parentB[:a]
-    childB[b-1:] = parentB[b-1:]
 
     childA[a:b+1] = parentB[a:b+1]
     childB[a:b+1] = parentA[a:b+1]
     
-    mapping = []
-    for i in range(a,b+1):
-        mapping.append(parentB[i])
-        mapping.append(parentA[i])
+    mapping_a = list(parentB[a:b+1])
+    mapping_b = list(parentA[a:b+1])
 
-    print(mapping)
+    print(mapping_a, mapping_b)
+    p = b + 1
+
+
+    def inList(val, arrFrom, arrTo):
+        res = arrTo[arrFrom.index(val)]
+
+        if(res in arrFrom):
+            return (inList(res, arrFrom, arrTo))
+        else: 
     
-    return (childA, childB)
+            return res
 
+    for i in range(len(parentA)-len(mapping_a)):
+     
+
+        if (p > b):
+            
+            if(parentA[p] in mapping_a):
+                childA.append(inList(parentA[p], mapping_a, mapping_b))
+
+            else:
+                childA.append(parentA[p]) 
+
+            if(parentB[p] in mapping_b):
+                childB.append(inList(parentB[p], mapping_b, mapping_a))
+
+            else:
+                childB.append (parentB[p])
+            
+     
+            
+
+        if(p < a):
+
+            if(parentA[p] in mapping_a):
+                childA.insert(p, inList(parentA[p], mapping_a, mapping_b) )
+            else:
+                childA.insert(p, parentA[p]) 
+
+            if(parentB[p] in mapping_b):
+                childB.insert(p, inList(parentB[p], mapping_b, mapping_a) )
+            else:
+                childB.insert(p, parentB[p])
+
+           
+
+        if(p == len(parentA)-1):
+            p = 0
+        else: p +=1
+
+    return (childA, childB)
 
 
 
