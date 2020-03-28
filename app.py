@@ -427,11 +427,9 @@ def initialize():
 @eel.expose
 def runAlgorithm():
     global generation_fitness, populationMatrix, nextGenerationMatrix
-
     #Run Genetic Algorithm
     generateInitPop()
     GA()
-
     logger.info("MINIMAL DISTANCE={}".format(minDist))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
     logger.info("Algorithm Completed Successfully.")
