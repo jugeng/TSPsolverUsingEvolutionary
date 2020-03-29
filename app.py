@@ -470,4 +470,4 @@ def runAlgorithm():
 
     return minDist
 
-eel.start("index.html", mode="brave")
+eel.start("index copy.html", size=(1580,850))

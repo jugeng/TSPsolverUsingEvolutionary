@@ -1,15 +1,18 @@
-
 body {
-    overflow: hidden;
+    overflow: auto;
 }
 
 html {
+    min-width: 1500px;
+    min-height: 850px;
+    max-width: 1550px;
+    max-height: 852pxs;
     overflow: hidden;
 }
 
 #list_view {
     background-color: #0f0f0f;
-    height: 35rem;
+    height: 25rem;
     overflow-y: auto;
     font-family: 'Nunito', sans-serif;
     margin-right: 0.8em;
@@ -41,7 +44,6 @@ html {
 }
 
 
-
 #fileinput {
     display: none;
 }
@@ -66,12 +68,11 @@ input {
     margin-bottom: 1.2em;
 }
 
-#butn {
+.butn {
     margin: 0.5em;
-    width: 8em;
+    width: 8rem;
     display: inline-block;
-
-    font-family:  'Nunito', sans-serif; ;
+    font-family: 'Nunito', sans-serif; ;
 }
 
 
@@ -79,16 +80,14 @@ input {
     font-family: 'Sen', sans-serif;
     font-size: small ;
     letter-spacing: 0.5em;
-    
 }
 
 
 #latlangio input {
-
     background-color: rgb(37, 35, 35);
     border-style: none;
     border-radius: 0px;
-    color: #ececec;
+    color: #a0a0a0;
     width: 5 rem;
     margin-right: 1em;
 }
@@ -121,8 +120,29 @@ input {
 
 .delete {
     background-color: rgb(49, 48, 48);
-
     margin-right: 1em;
     float: right;
 
+}
+
+#map_grid {
+    background-color: #201e1e;
+
+    overflow: hidden;
+}
+
+#overlay_dist {
+    position: fixed;
+    margin-left: auto;
+    margin-right: auto;
+    margin-bottom: 15px;
+    padding: 15px;
+    z-index: 2;
+    background-color: #bdbbbc;
+    box-shadow: 0px 10px 25px #888888;
+    left: 0;
+    right:0;
+    bottom: 4;
+    border-radius: 5em;
+    width: 15em;
 }
