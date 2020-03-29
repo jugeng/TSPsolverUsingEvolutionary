@@ -29,6 +29,9 @@ numberOfCities = 0
 totalFitness = 0
 genEvolved = 0
 
+loc_multiplier = math.pi / 180
+
+
 #Result Store
 minDist = math.inf
 bestRoute = []
@@ -109,15 +112,35 @@ def generateDistMatrix():
     global distanceMatrix, s_t, e_t
     global numberOfCities
     
+
+    def deg2rad(deg):
+        return deg * loc_multiplier
+
+
     for i in range(numberOfCities):
         temp_dist = []
         for j in range(numberOfCities):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
             a = cityCoord.iloc[i].values 
             b = cityCoord.iloc[j].values   
             #Find Euclidean distance between points
-            distance = np.linalg.norm(a-b)
-            temp_dist.append(float(distance))   #Using python list comprehension for better performance
 
+            #distance = np.linalg.norm(a-b)
+            if (data_cordinate == True):
+                distance = np.linalg.norm(a-b)
+                temp_dist.append(float(distance))   #Using python list comprehension for better performance
+            else:
+                R = 6371 #Radius of the earth in km
+                lat1 = a[0]
+                lat2 = b[0]
+                long1 = a[1]
+                long2 = b[1]
+                dLat = deg2rad(lat2-lat1) 
+                dLon = deg2rad(long2-long1)
+                a = math.sin(dLat/2) * math.sin(dLat/2) + math.cos(deg2rad(lat1)) * math.cos(deg2rad(lat2)) * math.sin(dLon/2) * math.sin(dLon/2)
+                c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
+                distance = R * c
+                temp_dist.append(float(distance))
+    
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
 
     e_t = process_time()
@@ -406,6 +429,8 @@ genCount = CONFIG.getint('ALGORITHM', 'GEN_COUNT')
 dead_count = CONFIG.getint('ALGORITHM', 'DEAD_COUNTER')
 cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
 set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
+data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
+
 
 logger = logging.getLogger('tsp_ga')
 logging_setup()
