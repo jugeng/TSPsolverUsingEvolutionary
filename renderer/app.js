@@ -4,7 +4,9 @@ var array = []
 document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
 
 function readSingleFile(evt) {
-    reset_array()
+    if (array.length > 0){reset_array()}
+
+
     let f = evt.target.files[0];
     if (f) {
         let r = new FileReader();
@@ -85,8 +87,6 @@ function add_to_list(a, b) {
         let ul = document.getElementById("city_list")
 
         city = document.createElement("li")
-        city.setAttribute("onmouseover", "hover_city(this)")
-        city.setAttribute("onmouseout", "hover_city_leave(this)")
         let t1 = "block "+ (array.length-1).toString();
         city.setAttribute("id", t1)
 
@@ -96,15 +96,15 @@ function add_to_list(a, b) {
         // cityname.style.color = "#104a6b"
         // cityname.textContent = "City " + array.length
         cityco = document.createElement("p")
-        cityco.textContent = "Lat: "+ a + " Long:" + b
-        cityco.style.color = "#e6ebed"
+        cityco.textContent = "Lat: "+ a + "     |       Long: " + b
+        cityco.style.color = "#8a8883"
 
         deletebtn = document.createElement("button")
         let t2 = "city "+ (array.length-1).toString();
         deletebtn.setAttribute("id", t2)
+        deletebtn.setAttribute("class", "delete")
         deletebtn.setAttribute("onclick", "remove_city(this.id)")
-        deletebtn.textContent = "x"
-
+    
         //div.appendChild(cityname)
         div.appendChild(cityco)
         div.appendChild(deletebtn)
@@ -112,6 +112,7 @@ function add_to_list(a, b) {
         city.appendChild(div)
 
         ul.appendChild(city)
+        city.scrollIntoView()
 
     }
     document.getElementById("city_x").value = ""
@@ -129,13 +130,6 @@ function remove_city(val) {
      array.splice(x[1], 1)
 }
 
-function hover_city(elem) {
-    elem.style.backgroundColor = "#161717"
-}
-
-function hover_city_leave(elem) {
-    elem.style.backgroundColor = "#242424"
-}
 
 function reset_array() {
     var list = document.getElementById("city_list");

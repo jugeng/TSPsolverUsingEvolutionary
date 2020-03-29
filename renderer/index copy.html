@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TSP Using GA</title>
+
+    <script defer src="app.js" type="text/javascript"></script>
+    <script src="/eel.js" type="text/javascript"></script>
+
+    <script src="https://kit.fontawesome.com/9f04c23623.js" crossorigin="anonymous"></script>
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+    <link rel="stylesheet" type="text/css" href="styles.css">
+
+    <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito&family=Sen&display=swap" rel="stylesheet">
+</head>
+
+<body>
+   
+
+    <div class="block" style="margin:0em">
+        <div class="columns has-background-black is-gapless head">
+            <div class="column is-2">
+                <span class="icon is-medium" style="margin-left: 1.3em;color:whitesmoke">
+                    <i class="fas fa-sliders-h"></i>
+                </span>
+            </div>s
+            <div class="column is-8  has-text-centered">
+                <h4 class="title is-5" id = "main-name-title" style="color:whitesmoke">OPTIMAL ROUTE SOLVER</h4>
+            </div>
+            <div class="column is-2">
+                <div class="container" style="display: inline-block; justify-content:end">
+                    <button class="button is-danger is-outlined" onclick="algoRun()">Run Algorithm</button>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+    <div class="block" style="margin-top:0em">
+        <div class="columns">
+
+            <div class="column">
+                <!--Map-->
+            </div>
+
+
+            <div class="column is-one-fifth" id="side-bar">
+                <!--City Controller-->
+
+                    <div = class="block" style="text-align: center">
+                        
+                            <div style="padding:1.2em;  margin-bottom: 1em; justify-items: center;" >
+                                <button id="butn" class="button is-outlined is-light" onclick="add()">ADD CITY</button>
+                                <button id="butn" class="button is-outlined is-info "
+                                    onclick="document.getElementById('fileinput').click()">LOAD FILE </button>
+                                <input type="file" id="fileinput" />
+                            </div>
+
+                            <div class="block" id="latlangio">
+                                <div class = "inline">
+                                    <label> Latitude</label>
+                                    <input class="input" type="text" id = "city_x" placeholder="Enter Latitude" >
+                                </div>
+                                <span class = "inline">
+                                    <label> Longitude</label>
+                                    <input class="input" type="text" id = "city_y" placeholder="Enter Longitude">
+                                </span>
+
+        
+    
+                            </div>
+                            
+
+                    </div>
+                    <!--List of cities-->
+                    <div class="block">
+                        <div id="list_view">
+                            <ul id="city_list"></ul>
+                        </div>
+                    </div>
+                    <div class="block" >
+                        <a class="content" id="reset" onclick="reset_array()">Reset List</a> 
+                    </div>
+
+
+
+
+            </div>
+
+        </div>
+
+
+
+    </div>
+
+
+
+
+
+
+    </div>
+
+
+</body>
+
+</html>

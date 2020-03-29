@@ -1,39 +1,128 @@
+
+body {
+    overflow: hidden;
+}
+
+html {
+    overflow: hidden;
+}
+
 #list_view {
-    right:0px;
-    background-color: #242424;
-    width: 350px;
-    height: 800px;
-    overflow: scroll;
-    padding: 15px;
+    background-color: #0f0f0f;
+    height: 35rem;
+    overflow-y: auto;
     font-family: 'Nunito', sans-serif;
-    position: relative;
+    margin-right: 0.8em;
+    
+
 }
 
 #citycords {
     display: inline-flex;
 }
 
-#citycords button {
-    margin-right: 45px;
-    position: absolute;
-    right: 2px;
-    border-radius: 12px;
-    padding: 4px ;
-    height: 25px;
-    width: 25px;
-    background-color: #b9b9b9;
-    border: none;
-    color: rgb(255, 255, 255);
-}
 
 #city_list {
     list-style-type: none;
-    margin-left: -25px;
+    align-items: center;
+    
 }
 
 #city_list li {
     padding: 10px;
     border-radius: 25px;
+    margin: 0.25em;
+    transition: all 0.20s;
+   
+}
+
+#city_list li:hover {
+    background-color: #2e2d2d;
 }
 
 
+
+#fileinput {
+    display: none;
+}
+
+.head {
+    height: 7.9vh;
+    align-items: center;
+}
+
+#side-bar {
+    height: 92.1vh;
+    background-color: #0f0f0f;
+}
+
+
+.block {
+    margin-bottom: 0.2em;
+}
+
+input {
+    padding: 5px;
+    margin-bottom: 1.2em;
+}
+
+#butn {
+    margin: 0.5em;
+    width: 8em;
+    display: inline-block;
+
+    font-family:  'Nunito', sans-serif; ;
+}
+
+
+#main-name-title {
+    font-family: 'Sen', sans-serif;
+    font-size: small ;
+    letter-spacing: 0.5em;
+    
+}
+
+
+#latlangio input {
+
+    background-color: rgb(37, 35, 35);
+    border-style: none;
+    border-radius: 0px;
+    color: #ececec;
+    width: 5 rem;
+    margin-right: 1em;
+}
+
+.inline {
+    display: flex;
+}
+
+.inline label {
+    margin: 0.2em;
+    width: 8.5em;
+    text-align: start;
+    color: rgb(141, 138, 138);
+}
+
+#list_view::-webkit-scrollbar {
+    width: 6px;
+    background-color: #0f0f0f;
+} 
+
+#list_view::-webkit-scrollbar-thumb {
+    background-color: #c52b66;
+    border-radius: 5em;
+}
+
+#list_view::-webkit-scrollbar-track {
+    border-radius: 10em;
+    background-color: rgb(49, 49, 49);
+}
+
+.delete {
+    background-color: rgb(49, 48, 48);
+
+    margin-right: 1em;
+    float: right;
+
+}
