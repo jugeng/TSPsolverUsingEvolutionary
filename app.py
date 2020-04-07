@@ -280,7 +280,8 @@ def GA():
             counter += 1 
         else:
             counter = 0
-            eel.update_distance(minDist)()
+            bestRoutestr = ' '.join([str(elem) for elem in bestRoute]) 
+            eel.update_distance(minDist, bestRoutestr)()
             end_point = i + dead_count 
 
         if (counter == dead_count or i == genCount - 1):
@@ -470,4 +471,4 @@ def runAlgorithm():
 
     return minDist
 
-eel.start("index copy.html", size=(1580,850))
+eel.start("index.html", size=(1600,850))
