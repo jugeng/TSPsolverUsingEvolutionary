@@ -1,14 +1,17 @@
 body {
-    overflow: auto;
-}
-
-html {
-    min-width: 1500px;
-    min-height: 850px;
-    max-width: 1550px;
-    max-height: 852pxs;
     overflow: hidden;
 }
+html {
+    overflow: hidden;
+}
+
+#main-name-title {
+    font-family: 'Sen', sans-serif;
+    font-size: small ;
+    letter-spacing: 0.5em;
+}
+
+
 
 #list_view {
     background-color: #0f0f0f;
@@ -16,52 +19,45 @@ html {
     overflow-y: auto;
     font-family: 'Nunito', sans-serif;
     margin-right: 0.8em;
-    
-
-}
-
-#citycords {
-    display: inline-flex;
 }
 
 
 #city_list {
     list-style-type: none;
     align-items: center;
-    
 }
 
 #city_list li {
     padding: 10px;
     border-radius: 25px;
     margin: 0.25em;
-    transition: all 0.20s;
-   
+    transition: all 0.20s;   
 }
 
 #city_list li:hover {
-    background-color: #2e2d2d;
+    background-color: #383737;
 }
 
+#city_coords {
+    align-self: center;
+    margin: 0.1em;
+}
 
 #fileinput {
     display: none;
 }
 
 .head {
-    height: 7.9vh;
+    height: 8vh;
     align-items: center;
+
 }
 
 #side-bar {
-    height: 92.1vh;
+    height: 92vh;
     background-color: #0f0f0f;
 }
 
-
-.block {
-    margin-bottom: 0.2em;
-}
 
 input {
     padding: 5px;
@@ -70,16 +66,10 @@ input {
 
 .butn {
     margin: 0.5em;
-    width: 8rem;
+    width: 155px;
     display: inline-block;
-    font-family: 'Nunito', sans-serif; ;
-}
-
-
-#main-name-title {
-    font-family: 'Sen', sans-serif;
-    font-size: small ;
-    letter-spacing: 0.5em;
+    font-family: 'Nunito', sans-serif; 
+    font-size: smaller ;
 }
 
 
@@ -126,8 +116,9 @@ input {
 }
 
 #map_grid {
-    background-color: #201e1e;
-
+    background-color: #2c2c2c;
+    width: 80vw;
+    height: 92vh;
     overflow: hidden;
 }
 
@@ -135,14 +126,18 @@ input {
     position: fixed;
     margin-left: auto;
     margin-right: auto;
-    margin-bottom: 15px;
-    padding: 15px;
+    padding: 25px;
     z-index: 2;
     background-color: #bdbbbc;
-    box-shadow: 0px 10px 25px #888888;
+    box-shadow: 0px 5px 5px #222222;
     left: 0;
     right:0;
-    bottom: 4;
+    bottom: 25px;
     border-radius: 5em;
-    width: 15em;
+    width: 20em;
+}
+
+#reset{
+    align-self: end;
+
 }

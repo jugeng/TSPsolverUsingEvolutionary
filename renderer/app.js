@@ -1,12 +1,57 @@
 //let array = [[12,10],[15,25],[4,3],[23,30],[1,10],[7,12],[11 ,18],[14,16],[15,27],[5,26],[25,14],[10,3],[14,4],[18,22],[6,24]]
 
 var array = []
+var sent_files = false
+var stage = new Konva.Stage({
+    container: 'map_grid',
+    width: 3000,
+    height: 2000,
+    draggable: true
+});
+var citylayer = new Konva.Layer();
+var routelayer = new Konva.Layer();
+stage.add(routelayer)
+stage.add(citylayer)
+
+var scaleBy = 1.2;
+stage.on('wheel', e => {
+    e.evt.preventDefault();
+    var oldScale = stage.scaleX();
+
+    var mousePointTo = {
+        x: stage.getPointerPosition().x / oldScale - stage.x() / oldScale,
+        y: stage.getPointerPosition().y / oldScale - stage.y() / oldScale
+    };
+
+    var newScale =
+        e.evt.deltaY > 0 ? oldScale * scaleBy : oldScale / scaleBy;
+    stage.scale({
+        x: newScale,
+        y: newScale
+    });
+
+    var newPos = {
+        x:
+            -(mousePointTo.x - stage.getPointerPosition().x / newScale) *
+            newScale,
+        y:
+            -(mousePointTo.y - stage.getPointerPosition().y / newScale) *
+            newScale
+    };
+    stage.position(newPos);
+    stage.batchDraw();
+});
+
+var best_route = []
+
+
 document.getElementById('fileinput').addEventListener('change', readSingleFile, false);
 
 function readSingleFile(evt) {
-    if (array.length > 0){reset_array()}
 
-
+    if (array.length > 0) {
+        reset_array()
+    }
     let f = evt.target.files[0];
     if (f) {
         let r = new FileReader();
@@ -14,19 +59,20 @@ function readSingleFile(evt) {
             var contents = r.result;
             city_coords = contents.split("\n")
             city_coords.forEach(element => {
-                    if (element) {
-                        let coords = element.split(" ")
-                        let city = []
-                        coords.forEach(e => {
-                            if (e) {
-                                city.push(e)
-                            }
-                        })
-                        array.push(city)
-                        add_to_list(city[0], city[1]) 
-                    }; 
+                if (element) {
+                    let coords = element.split(" ")
+                    let city = []
+                    coords.forEach(e => {
+                        if (e) {
+                            city.push(parseFloat(e))
+                        }
+                    })
+                    array.push(city)
+                    add_to_list(city[0], city[1])
+                };
             });
-            addCity();
+            console.log(array)
+            draw_cities()
         };
         r.onerror = function (e) {
             alert("Could not load file")
@@ -43,12 +89,12 @@ function addCity() {
 }
 
 function algoRun() {
+    addCity();
 
     if (array.length > 0) {
         init = eel.initialize()()
         document.getElementById("run").disabled = true
         document.getElementById("push_city").disabled = true
-
         document.getElementById("run").innerHTML = "Running"
 
         result = eel.runAlgorithm()((res) => {
@@ -64,12 +110,15 @@ function algoRun() {
 }
 
 eel.expose(update_distance)
-function update_distance(val) {
 
-    document.getElementById("minimum_distance").innerHTML = val
+function update_distance(val, new_route) {
+    document.getElementById("minimum_distance").innerHTML = "Distance: " + val
+    best_route = new_route.split(" ")
+    route_draw()
 }
 
 eel.expose(set_progress)
+
 function set_progress(n) {
     document.getElementById("prog_bar").value = n
 }
@@ -77,8 +126,12 @@ function set_progress(n) {
 function add() {
     a = document.getElementById("city_x").value
     b = document.getElementById("city_y").value
-    array.push([a, b])
+    array.push([parseFloat(a), parseFloat(b)])
     add_to_list(a, b)
+    draw_cities()
+
+
+
 }
 
 function add_to_list(a, b) {
@@ -87,28 +140,28 @@ function add_to_list(a, b) {
         let ul = document.getElementById("city_list")
 
         city = document.createElement("li")
-        let t1 = "block "+ (array.length-1).toString();
+        let t1 = "block " + (array.length - 1).toString();
         city.setAttribute("id", t1)
 
         div = document.createElement("div")
-        div.setAttribute("id", "citycords") 
+        div.setAttribute("id", "citycords")
         // cityname = document.createElement("h3")
         // cityname.style.color = "#104a6b"
         // cityname.textContent = "City " + array.length
         cityco = document.createElement("p")
-        cityco.textContent = "Lat: "+ a + "     |       Long: " + b
+        cityco.textContent = "Lat: " + a + "     |       Long: " + b
         cityco.style.color = "#8a8883"
 
         deletebtn = document.createElement("button")
-        let t2 = "city "+ (array.length-1).toString();
+        let t2 = "city " + (array.length - 1).toString();
         deletebtn.setAttribute("id", t2)
         deletebtn.setAttribute("class", "delete")
         deletebtn.setAttribute("onclick", "remove_city(this.id)")
-    
+
         //div.appendChild(cityname)
         div.appendChild(cityco)
         div.appendChild(deletebtn)
-               
+
         city.appendChild(div)
 
         ul.appendChild(city)
@@ -127,8 +180,17 @@ function remove_city(val) {
     t1 = "block " + (x[1]).toString();
     elem = document.getElementById(t1);
     list.removeChild(elem);
-     array.splice(x[1], 1)
+    array.splice(x[1], 1)
+    des_city("#city" + (x[1]).toString())
 }
+
+function des_city(val) {
+    var shape = stage.find(val);
+    shape.destroy()
+    citylayer.batchDraw()
+}
+
+
 
 
 function reset_array() {
@@ -138,6 +200,81 @@ function reset_array() {
     while (list.hasChildNodes()) {
         list.removeChild(list.firstChild);
     }
-
     array = []
+    citylayer.destroyChildren()
+    citylayer.batchDraw()
+}
+
+function algo_start() {
+
+}
+
+function reset_view() {
+
+}
+
+function draw_cities() {
+    var maxRowX = array.map(function (row) {
+        return row[0]
+    });
+    window.offsetX = (1000 / Math.max.apply(null, maxRowX)) - 2;
+
+    var maxRowY = array.map(function (row) {
+        return row[1]
+    });
+    window.offsetY = (800 / Math.max.apply(null, maxRowY)) - 2;
+
+    citylayer.destroyChildren()
+    citylayer.batchDraw()
+
+    for (i = 0; i < array.length; i++) {
+
+        var circle = new Konva.Circle({
+            x: parseInt(array[i][0]) * offsetX,
+            y: parseInt(array[i][1]) * offsetY,
+            radius: 5,
+            fill: '#D9D9D9',
+            id: 'city' + i.toString()
+        });
+        citylayer.add(circle)
+
+    }
+
+    route_draw()
+}
+
+function route_draw() {
+
+    routelayer.destroyChildren()
+
+    for (i = 0; i < best_route.length - 1; i++) {
+        let a = best_route[i]
+        let b = best_route[i + 1]
+        var route = new Konva.Line({
+            points: [array[a][0] * offsetX, array[a][1] * offsetY, array[b][0] * offsetX, array[b][1] * offsetY],
+            stroke: '#feb062',
+            strokeWidth: 1,
+            lineCap: 'round',
+            lineJoin: 'round'
+        })
+
+        routelayer.add(route)
+    }
+    routelayer.batchDraw()
+
+    // if(best_route == array.length){
+    //     for(i = 0; i < best_route.length-1; i++){
+    //         var route = new Konva.Line({
+    //             x1: array[i][0],
+    //             x2: array[i+1][0],
+    //             y1: array[i][1],
+    //             y2: array[i+1][1],
+    //             fill: '#feb062'
+    //         })
+
+    //         routelayer.add(line)
+    //     }
+
+    // }
+
 }

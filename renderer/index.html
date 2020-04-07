@@ -8,6 +8,8 @@
 
     <script defer src="app.js" type="text/javascript"></script>
     <script src="/eel.js" type="text/javascript"></script>
+    <script src="https://unpkg.com/konva@4.0.0/konva.min.js"></script>
+
 
     <script src="https://kit.fontawesome.com/9f04c23623.js" crossorigin="anonymous"></script>
 
@@ -21,7 +23,7 @@
 <body>
 
 
-    <div class="block" style="margin:0em">
+    <div>
         <div class="columns has-background-black is-gapless head">
             <div class="column is-2">
                 <span class="icon is-medium" style="margin-left: 1.3em;color:whitesmoke">
@@ -32,7 +34,7 @@
                 <h4 class="title is-5" id="main-name-title" style="color:whitesmoke">OPTIMAL ROUTE SOLVER</h4>
             </div>
             <div class="column is-2">
-                <div class="container" style="display: inline-block; justify-content:end">
+                <div class="container" style="float:right; padding-right: 35px">
                     <button class="button is-danger is-outlined" id="run" onclick="algoRun()">Run Algorithm</button>
                 </div>
 
@@ -40,10 +42,10 @@
         </div>
     </div>
 
-    <div class="block" style="margin-top:0em">
-        <div class="columns">
+    <div >
+        <div class="columns" style="margin-bottom: 0;">
 
-            <div class="column ">
+            <div class="column">
                 <!--Map-->
                 <!--
                 <div class="block">
@@ -52,24 +54,22 @@
                 </iframe>
                 </div>   
                 -->
-           
-                    <canvas  id="map_grid" width="500" height="600">
-                    </canvas>
-           
+                <div id="map_grid">
+
+                </div>
+
 
             </div>
 
 
             <div class="column is-one-fifth" id="side-bar">
                 <!--City Controller-->
-
                 <div class="block" style="text-align: center">
 
                     <div style="padding:1.2em;  margin-bottom: 1em; justify-items: center;">
                         <button id="push_city" class="button is-outlined is-light butn" onclick="add()">ADD CITY</button>
-                        <button id="push_city" class="button is-outlined is-info butn "
-                            onclick="document.getElementById('fileinput').click()">LOAD FILE </button>
-                        <input type="file" id="fileinput" accept=".txt"/>
+                        <button id="push_city" class="button is-outlined is-info butn" onclick="document.getElementById('fileinput').click()">LOAD FILE</button>
+                        <input type="file" id="fileinput" accept=".txt" />
                     </div>
 
                     <div class="block" id="latlangio">
@@ -91,33 +91,27 @@
                     <div id="list_view">
                         <ul id="city_list"></ul>
                     </div>
-                </div>
-
-                <div class="block">
                     <a class="content" id="reset" onclick="reset_array()">Reset List</a>
                 </div>
 
             </div>
+        </div>
 
-
-    </div>
-
-    </div>
-    <div id = "overlay_dist">
-        <p class = "title is-5" id="minimum_distance" style = "color: black;">Distance:</p>
-        <progress id="prog_bar" class = "progress" value="0" max="100"></progress>
-    </div>
-
-
+        <div id="overlay_dist">
+            <p class="title is-5" id="minimum_distance" style="color: black;">Distance:</p>
+            <progress id="prog_bar" class="progress" value="0" max="100"></progress>
+        </div>
 
     </div>
+    
 
 
 
 
 
 
-    </div>
+
+
 
 
 </body>
