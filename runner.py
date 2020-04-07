@@ -207,7 +207,6 @@ def calculateFitness():
     for i,individual in populationMatrix.iterrows():
         distance = 0
         for j in range(len(individual)-1):
-            #distance += calculateDistance(individual[j],individual[j+1])
             distance += distanceMatrix.iat[individual[j],individual[j+1]]
    
         fitness.append( 1 / distance )  #For routes with smaller distance to have highest fitness
@@ -237,35 +236,41 @@ def mutateChild(gene):
     global mutationRate
     r = random.random()
     if r < mutationRate:
-        return mutation.Twors(gene)
+        return mutation.RSM(gene)
 
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute
     newGen = []
 
     while (len(newGen) < populationSize-2):
+
         parentA = matingPoolSelection()
         parentB = matingPoolSelection()
 
+        #Crossover Probability
+        r = random.random()
 
+        if r < 0.8:
+            if (cx_opt == "OC_Single"):
+                childA, childB = crossover.OC_Single(parentA, parentB)
+            elif (cx_opt == "cycleCrossover"):
+                childA, childB = crossover.cycleCrossover(parentA, parentB)
+            elif (cx_opt == "OC_Multi"):
+                childA, childB = crossover.OC_Multi(parentA, parentB)
+            elif (cx_opt == "PMS"):
+                childA, childB = crossover.PMS(parentA, parentB)
+            else:
+                logger.warning("Unknown crossover operator configured.")
+                logger.warning("Model cannot be executed")
+                sys.exit()
 
-        if (cx_opt == "OC_Single"):
-            childA, childB = crossover.OC_Single(parentA, parentB)
-        elif (cx_opt == "cycleCrossover"):
-            childA, childB = crossover.cycleCrossover(parentA, parentB)
-        elif (cx_opt == "OC_Multi"):
-            childA, childB = crossover.OC_Multi(parentA, parentB)
-        elif (cx_opt == "PMS"):
-            childA, childB = crossover.PMS(parentA, parentB)
+            mutateChild(childA)
+            mutateChild(childB)
+            newGen.append(childA)
+            newGen.append(childB)
         else:
-            logger.warning("Unknown crossover operator configured.")
-            logger.warning("Model cannot be executed")
-            sys.exit()
-
-        mutateChild(childA)
-        mutateChild(childB)
-        newGen.append(childA)
-        newGen.append(childB)
+            newGen.append(parentA)
+            newGen.append(parentB)
 
        
     nextGenerationMatrix = nextGenerationMatrix.append(newGen[:populationSize-1])
