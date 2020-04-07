@@ -6,7 +6,7 @@ def Twors(individual):
     #Simple swap mutation where to genes are swapped to create a new gene
     size = len(individual)
     a = random.randint(1,size-2)
-    b = random.randint(a, size-1)
+    b = random.randint(a+1, size-1)
     individual[a], individual[b] =  individual[b], individual[a]
     return (individual)
 
