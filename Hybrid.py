@@ -18,7 +18,7 @@ import configparser
 import matplotlib
 import matplotlib.pyplot as plt
 import sys
-from time import process_time
+from time import time
 
 from multiprocessing import Process, Value, Array
 import threading
@@ -71,7 +71,7 @@ def addCity_using_coords():
 
     global numberOfCities, cityCoord,distanceMatrix, s_t, e_t
 
-    s_t = process_time()
+    s_t = time()
 
 
     temp_list = []
@@ -95,7 +95,7 @@ def addCity_using_coords():
 def addCity_using_dist():
 
     global distanceMatrix, numberOfCities, s_t, e_t
-    s_t = process_time()
+    s_t = time()
     temp_dist = []
     with open(str(data_fname), "r") as f:
         numberOfCities = int(f.readline())
@@ -113,8 +113,7 @@ def addCity_using_dist():
                     temp_dist = []
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
-    e_t = process_time()
-    logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
+ 
 
 
 def generateDistMatrix():
@@ -153,7 +152,7 @@ def generateDistMatrix():
 
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
 
-    e_t = process_time()
+    e_t = time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
     #print(distanceMatrix)
 
@@ -403,13 +402,12 @@ def SA(arr, val, dist, ret1, ret2):
 
 
 def GA():
-    global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count, genEvolved,s_t, e_t, switch, minDist
+    global nextGenerationMatrix, populationMatrix, bestRoute, dead_count, genEvolved,s_t, e_t, switch, minDist
 
     counter = 0
     i=0
-    end_point = dead_count
     
-    s_t = process_time()
+    s_t = time()
 
     end = False
     while(1):
@@ -425,7 +423,6 @@ def GA():
 
         else:
             counter = 0
-            print(i, ":", minDist / scale_factor)
 
 
         if(counter == int(dead_count / 4) and switch == False):
@@ -438,22 +435,11 @@ def GA():
         #Reached End
         if (counter == dead_count and switch == False):
 
-            #i = genCount
-
             res = Value('f', minDist, lock=False )
             res_arr = Array('i', numberOfCities, lock=False )
             sa = Process(target = SA, args=(b,n, distanceMatrix, res, res_arr))
             switch = True
             sa.start()
-
-            # sa.join()
-            # switch = False
-
-
-            # if(res.value < minDist):
-            #     minDist = res.value
-            #     bestRoute = res_arr[:]
-            # else: end = True
 
         #Reached End
         if(counter >= dead_count and switch == True):
@@ -477,7 +463,7 @@ def GA():
         if(end == True):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
-            e_t = process_time()
+            e_t = time()
             logger.info("CPU execution time: {}".format(e_t-s_t))
             break
 
@@ -628,14 +614,12 @@ def initializeAlgorithm():
         logger.warning("Population size not enough")
         sys.exit()
     mutationRate = CONFIG.getfloat('GENETIC', 'MUTATION_RATE')
-    genCount = CONFIG.getint('GENETIC', 'GEN_COUNT')
     dead_count = CONFIG.getint('GENETIC', 'DEAD_COUNTER')
     cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
     set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
     data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
 
     data_fname = "./dataset/" + data + ".txt"
-
 
 
 
@@ -665,7 +649,7 @@ if __name__ == '__main__':
     logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
     logger.info("\nAlgorithm Completed Successfully.")
-    #logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved]))   #Will fail if all generations are exhausted
+    logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved]))   #Will fail if all generations are exhausted
 
 
     if(set_debug == True):
