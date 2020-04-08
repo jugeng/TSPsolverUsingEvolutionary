@@ -69,16 +69,18 @@ def update_gen_graph(v):
     layout = go.Layout(
         title= 'Generation:{}'.format(v), 
         yaxis = dict(
-            range = [0,r ], 
-            title = 'Fitness'))
+            range = [0,r], 
+            title = 'Fitness'),
+            height = 700)
 
     
 
     data_1 = [go.Scatter(y = fitness_curve, x = np.arange(t), marker = dict(line = dict(color = 'crimson')) , showlegend = False), 
         go.Scatter(x = [v], y = [fitness_curve[v]], mode='markers' )]
-   
     layout_1 = go.Layout(title = "Fitness Curve",width=800, height=500, autosize=False)
     
+
+
     graph_1 = go.Figure(data=data, layout=layout)
     graph_2 = go.Figure(data=data_1,  layout = layout_1)
 
