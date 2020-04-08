@@ -152,24 +152,25 @@ def generateDistMatrix():
 def generateInitPop():
     global numberOfCities, populationSize
     
-    pop = [0]
-    for i in range(numberOfCities):
+    # pop = [0]
+    # for i in range(numberOfCities):
 
-        sort_dist = distanceMatrix.iloc[i]
-        sort_dist = sort_dist.sort_values(ascending=True)
+    #     sort_dist = distanceMatrix.iloc[i]
+    #     sort_dist = sort_dist.sort_values(ascending=True)
         
 
-        for index, row in sort_dist.iteritems():
-            if row == 0.0:
-                continue
+    #     for index, row in sort_dist.iteritems():
+    #         if row == 0.0:
+    #             continue
             
-            if index in pop:
-                continue
-            else:
-                pop.append(index)
-                break 
+    #         if index in pop:
+    #             continue
+    #         else:
+    #             pop.append(index)
+    #             break 
     
-    pop = np.asarray(pop)
+    # pop = np.asarray(pop)
+    pop = np.arange(numberOfCities)
     populationMatrix.loc[len(populationMatrix)] = pop
  
     for i in range(populationSize-1):
