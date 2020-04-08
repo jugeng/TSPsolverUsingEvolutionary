@@ -1,6 +1,6 @@
- # Developed by Jugen Gawande 
+ # Developed by Jugen Gawande
 # This is a python script to solve Travelling Salesman Problem using an evolutionary optimization
-# algorithm called Genetic Algorithm. 
+# algorithm called Genetic Algorithm.
 
 import numpy as np
 import random
@@ -14,8 +14,8 @@ import mutation
 
 from datetime import datetime
 import logging
-import configparser 
-import matplotlib 
+import configparser
+import matplotlib
 import matplotlib.pyplot as plt
 import sys
 from time import process_time
@@ -27,7 +27,7 @@ T = 0.5
 alpha_temp = 0.9
 
 
-CONFIG = configparser.ConfigParser()                                     
+CONFIG = configparser.ConfigParser()
 CONFIG.read('controller.ini')
 
 #Calculators
@@ -57,18 +57,18 @@ scale_factor = 0.000125
 
 def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     # Print iterations progress
-  
+
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + '-' * (length - filledLength)
     print('\r{} {} |{}| {}% {} CURR_MIN_DIST={:.2f}'.format(prefix,iteration, bar, percent, suffix, minDist/scale_factor), end = printEnd )
     # Print New Line on Complete
-    if iteration == total: 
+    if iteration == total:
         print("\n")
 
- 
+
 def addCity_using_coords():
-    
+
     global numberOfCities, cityCoord,distanceMatrix, s_t, e_t
 
     s_t = process_time()
@@ -81,7 +81,7 @@ def addCity_using_coords():
                 x, y = line.split()
                 temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
             cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
-        numberOfCities =  len(cityCoord) 
+        numberOfCities =  len(cityCoord)
         if numberOfCities > 0:
             distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
             logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
@@ -90,17 +90,17 @@ def addCity_using_coords():
         logger.warning("Dataset could not be loaded")
         sys.exit()
     #print(cityCoord, numberOfCities)
-    
+
 
 def addCity_using_dist():
-    
+
     global distanceMatrix, numberOfCities, s_t, e_t
     s_t = process_time()
     temp_dist = []
     with open(str(data_fname), "r") as f:
         numberOfCities = int(f.readline())
         distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-    
+
         i = 0
         for line in f:
             for val in line.split():
@@ -110,7 +110,7 @@ def addCity_using_dist():
 
                     i = 0
                     distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-                    temp_dist = [] 
+                    temp_dist = []
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
     e_t = process_time()
@@ -121,7 +121,7 @@ def generateDistMatrix():
 
     global distanceMatrix, s_t, e_t
     global numberOfCities
-    
+
 
     def deg2rad(deg):
         return deg * loc_multiplier
@@ -130,8 +130,8 @@ def generateDistMatrix():
     for i in range(numberOfCities):
         temp_dist = []
         for j in range(numberOfCities):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
-            a = cityCoord.iloc[i].values 
-            b = cityCoord.iloc[j].values   
+            a = cityCoord.iloc[i].values
+            b = cityCoord.iloc[j].values
             #Find Euclidean distance between points
 
             #distance = np.linalg.norm(a-b)
@@ -144,59 +144,59 @@ def generateDistMatrix():
                 lat2 = b[0]
                 long1 = a[1]
                 long2 = b[1]
-                dLat = deg2rad(lat2-lat1) 
+                dLat = deg2rad(lat2-lat1)
                 dLon = deg2rad(long2-long1)
                 a = math.sin(dLat/2) * math.sin(dLat/2) + math.cos(deg2rad(lat1)) * math.cos(deg2rad(lat2)) * math.sin(dLon/2) * math.sin(dLon/2)
                 c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
                 distance = R * c
                 temp_dist.append(float(distance))
-    
+
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
 
     e_t = process_time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
     #print(distanceMatrix)
-  
+
 
 def generateInitPop():
     global numberOfCities, populationSize
-    
+
     # pop = [0]
     # for i in range(numberOfCities):
 
     #     sort_dist = distanceMatrix.iloc[i]
     #     sort_dist = sort_dist.sort_values(ascending=True)
-        
+
 
     #     for index, row in sort_dist.iteritems():
     #         if row == 0.0:
     #             continue
-            
+
     #         if index in pop:
     #             continue
     #         else:
     #             pop.append(index)
-    #             break 
-    
+    #             break
+
     # pop = np.asarray(pop)
     pop = np.arange(numberOfCities)
     populationMatrix.loc[len(populationMatrix)] = pop
- 
+
     for i in range(populationSize-1):
         np.random.shuffle(pop[1:])
         populationMatrix.loc[len(populationMatrix)] = pop
 
     logger.info("{} intial chromorsome populated".format(len(populationMatrix.index)))
     if (len(populationMatrix.index) == populationSize):
-        
+
         logger.info("Initial population generated successfully")
         calculateFitness()
 
 
 def matingPoolSelection():
-    #Using Roulette wheel selection we will assign probabilities from 0-1 to 
+    #Using Roulette wheel selection we will assign probabilities from 0-1 to
     #each individual. The probability will determine how often we select a fit individual
-    
+
     global totalFitness, fitnessMatrix
 
     index = 0
@@ -204,12 +204,12 @@ def matingPoolSelection():
 
     while( r > 0):
         r = r - fitnessMatrix[index]
-        index += 1 
-    
+        index += 1
+
     index -= 1
 
     return populationMatrix.iloc[index].values
-    
+
 
 def calculateFitness():
     global totalFitness, fitnessMatrix, minDist, fitness_curve, bestRoute, nextGenerationMatrix, generation_fitness
@@ -219,24 +219,22 @@ def calculateFitness():
         distance = 0
         for j in range(len(individual)-1):
             distance += distanceMatrix.iat[individual[j],individual[j+1]]
-   
+
         fitness.append( 1 / distance )  #For routes with smaller distance to have highest fitness
 
         #Updating the best distance variable when a distance that is smaller than all
         #previous calculations is found
-        
+
         if distance < minDist:
             minDist = distance
             bestRoute = np.copy(individual)
-    
+
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)       #Normalizing the fitness values between [0-1]
 
     fitness_curve.append(round(minDist  / scale_factor, 2))
-    generation_fitness.loc[len(generation_fitness)] = fitnessMatrix  
-
-    
+    generation_fitness.loc[len(generation_fitness)] = fitnessMatrix
 
 
 def mutateChild(gene):
@@ -251,7 +249,7 @@ def nextGeneration():
     newGen = []
 
     nextGenerationMatrix.loc[len(nextGenerationMatrix)] = bestRoute     #Elitism, moving the fittest gene to the new generation as is
-    nextGenerationMatrix.loc[len(nextGenerationMatrix)] = bestRoute 
+    nextGenerationMatrix.loc[len(nextGenerationMatrix)] = bestRoute
 
     while (len(newGen) < populationSize-2):
 
@@ -318,18 +316,18 @@ def reverse(arr, a, b):
         return (np.concatenate((x,w,z)))
 
     elif(del_e > 0):
-        pr = math.exp((-del_e) / (T) ) 
+        pr = math.exp((-del_e) / (T) )
         a = random.random()
 
         if (pr > a):
-            
+
             return (np.concatenate((x,w,z)))
         else: return (arr)
     else: return(arr)
 
 
 def transport(arr, a, b):
-   
+
     x = arr[:a]
     y = arr[a:b+1]
     z = arr[b+1:]
@@ -352,12 +350,12 @@ def transport(arr, a, b):
         return(arr)
 
     del_e = s_dash - s
-    
-    if(del_e < 0):    
+
+    if(del_e < 0):
         return (np.concatenate((x,z[:u],y,z[u:])))
 
     elif(del_e > 0):
-        pr = math.exp((-del_e) / (T) ) 
+        pr = math.exp((-del_e) / (T) )
         a = random.random()
 
         if (pr > a):
@@ -366,7 +364,7 @@ def transport(arr, a, b):
         else: return (arr)
 
     else: return(arr)
-    
+
 
 def testNeighbor(arr):
     r = random.random()
@@ -380,16 +378,16 @@ def testNeighbor(arr):
 
     else:
         return (transport(arr, a, b))
-    
+
 
 def SA(arr, val, dist, ret1, ret2):
     global T, tempDistMatx
-    T = 0.5
+    T = 0.2
     tempDistMatx = dist
     accepted = math.inf
     count = len(arr)
     accepted = count + 1
-    while(accepted > count / 5):
+    while(accepted != 1):
         accepted = 0
         # for i in range(50*len(arr)):
         for i in range(10*count):
@@ -398,9 +396,7 @@ def SA(arr, val, dist, ret1, ret2):
                 accepted += 1
                 arr = new_arr
 
-        T *= alpha_temp 
-
-
+        T *= alpha_temp
 
     ret1.value = calculateSolutionFitness(arr)
     ret2[:] = arr
@@ -412,46 +408,34 @@ def GA():
     counter = 0
     i=0
     end_point = dead_count
-    #printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 40)
-
-    s_t = process_time()
     
+    s_t = process_time()
 
+    end = False
     while(1):
         m = minDist
 
         n = minDist
         b = bestRoute
-        print(i, ":", minDist / scale_factor)
 
         nextGeneration()
 
         if(minDist == m):
-            counter += 1 
+            counter += 1
 
         else:
             counter = 0
-            end_point = i + dead_count 
+            print(i, ":", minDist / scale_factor)
+
 
         if(counter == int(dead_count / 4) and switch == False):
             res = Value('f', minDist, lock=False )
             res_arr = Array('i', numberOfCities, lock=False )
             sa = Process(target = SA, args=(b,n, distanceMatrix, res, res_arr))
-            print("start")
             switch = True
             sa.start()
 
-
-        if(switch == True):
-            if(sa.is_alive() == False):
-                switch = False
-                print("done")
-                if(res.value < minDist):
-                    print("found better >")
-                    minDist = res.value
-                    bestRoute = res_arr[:]
-                    counter = 0 
-
+        #Reached End
         if (counter == dead_count and switch == False):
 
             #i = genCount
@@ -459,48 +443,50 @@ def GA():
             res = Value('f', minDist, lock=False )
             res_arr = Array('i', numberOfCities, lock=False )
             sa = Process(target = SA, args=(b,n, distanceMatrix, res, res_arr))
-            print("start")
             switch = True
             sa.start()
+
+            # sa.join()
+            # switch = False
+
+
+            # if(res.value < minDist):
+            #     minDist = res.value
+            #     bestRoute = res_arr[:]
+            # else: end = True
+
+        #Reached End
+        if(counter >= dead_count and switch == True):
             sa.join()
             switch = False
             if(res.value < minDist):
-                minDist = res.val
+                minDist = res.value
                 bestRoute = res_arr[:]
+                counter = 0
+            else: end = True
 
-        if(counter == dead_count and switch == True):
-            switch = False
-            sa.join()
-            if(res.val < minDist):
-                minDist = res.val
-                bestRoute = b
-                counter = 0 
-            else:
-                pass
-        
-        if(i > genCount):
-            if(sa.is_alive()):
-                sa.join()
+
+        if(switch == True):
+            if(sa.is_alive() == False):
                 switch = False
-
                 if(res.value < minDist):
-                    minDist = res.val
+                    minDist = res.value
                     bestRoute = res_arr[:]
-                    i = i - dead_count
+                    counter = 0
 
+        if(end == True):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
             e_t = process_time()
             logger.info("CPU execution time: {}".format(e_t-s_t))
-            break 
-        
+            break
+
         else:
-            i+=1 
-        #printProgressBar(i, end_point , prefix = 'Generation:', suffix = 'Evolved', length = 40)
-    
+            i+=1
+
 
 #Graphing
-def graphing(): 
+def graphing():
     global fitness_curve, genEvolved
 
     fig = plt.figure(figsize = (15,8))
@@ -556,8 +542,9 @@ def graphing():
     fig.text(0.8, 0.74, 'POP SIZE={}'.format(populationSize), color = '#F5F1E3')
     fig.text(0.8, 0.72, 'MUT RATE={}'.format(mutationRate), color = '#F5F1E3')
     fig.text(0.8, 0.70, 'CROSSOVER OPT={}'.format(CONFIG['OPERATOR']['CROSSOVER_OPERATOR']), color = '#F5F1E3')
+    fig.text(0.8, 0.68, 'TEMPERATURE={}'.format(CONFIG['SIMULATED ANNEALING']['TEMPERATURE']), color = '#F5F1E3')
 
-    fig.text(0.62, 0.02, "TSP solved using Genetic Algorithm [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
+    fig.text(0.54, 0.02, "TSP solved using Modified Genetic Algorithm using SA [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
 
     logger.info("Fitness Curve generated")
 
@@ -572,12 +559,12 @@ def graphing():
 
     plt.subplots_adjust(left=0.15)
 
-    
+
     if(set_debug == True):
-        hjhsda = "./logs/output_curve/G_GA_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist / scale_factor))
+        hjhsda = "./logs/output_curve/G_MGASA_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist / scale_factor))
         fig.savefig(hjhsda, facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
-    #plt.show()   #To view graph after generating 
+    #plt.show()   #To view graph after generating
 
 #Data Logging
 def loggingSetup():
@@ -587,13 +574,13 @@ def loggingSetup():
 
     logger.setLevel(logging.INFO)
     # create file handler which logs even debug messages
-    if(set_debug == True): 
+    if(set_debug == True):
         fh = logging.FileHandler(fname)
         fh.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    
-    if(set_debug == True): 
+
+    if(set_debug == True):
         logger.addHandler(fh)
     logger.addHandler(ch)
 
@@ -604,11 +591,12 @@ def loggingSetup():
 
 
 def outputRecord():
+    global generation_fitness
     with open("./logs/visualize_data.txt", "w") as f:
         f.write(" ".join(str(item) for item in fitness_curve))
         f.write("\n")
 
-    rname = "./logs/test_GA_{}.csv".format(data)
+    rname = "./logs/test_MGASA_{}.csv".format(data)
 
     try:
         with open(rname, "r") as f:
@@ -624,7 +612,7 @@ def outputRecord():
     logger.info("Visualization Data Generated")
 
     generation_fitness = generation_fitness.round(5)
-    generation_fitness.to_csv("./logs/curve_log/GenFit_GA_data_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M")), header=None, index=None, sep=',', mode='a')
+    generation_fitness.to_csv("./logs/curve_log/GenFit_MGASA_data_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M")), header=None, index=None, sep=',', mode='a')
     generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
 
     graphing()
