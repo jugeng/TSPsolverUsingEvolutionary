@@ -392,82 +392,15 @@ def graphing():
         hjhsda = "./logs/output_curve/G_GA_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist / scale_factor))
         fig.savefig(hjhsda, facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
-    #plt.show()   #To view graph after generating 
+ 
 
 
-#Data Logging
-def logging_setup():
-    global logger
-
-    fname = "./logs/test_log/TSP_GA_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + data +"_"+ str(populationSize) + "_" + str(mutationRate) + ".log"
-
-    logger.setLevel(logging.INFO)
-    # create file handler which logs even debug messages
-    if(set_debug == True): 
-        fh = logging.FileHandler(fname)
-        fh.setLevel(logging.INFO)
-    ch = logging.StreamHandler()
-    ch.setLevel(logging.INFO)
-    
-    if(set_debug == True): 
-        logger.addHandler(fh)
-    logger.addHandler(ch)
-
-
-    logger.info("TSP USING Genetic Algorithm\nDeveloped by Jugen Gawande")
-    logger.info(str(datetime.now()))
-    logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}".format(pop =populationSize, mut = mutationRate, name = data))
-
-
-#Controller Variables
-data = CONFIG['DATASET']['FILE_NAME']
-data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
-populationSize = CONFIG.getint('GENETIC', 'POP_SIZE')
-if (populationSize < 1):
-    logger.warning("Population size not enough")
-    sys.exit()
-mutationRate = CONFIG.getfloat('GENETIC', 'MUTATION_RATE')
-genCount = CONFIG.getint('GENETIC', 'GEN_COUNT')
-dead_count = CONFIG.getint('GENETIC', 'DEAD_COUNTER')
-cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
-set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
-data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
-
-
-logger = logging.getLogger('tsp_ga')
-logging_setup()
-
-data_fname = "./dataset/" + data + ".txt"   #Select data file to use
-
-if data_type_flag == 0:
-    addCity_using_coords()
-
-else:
-    addCity_using_dist()
-
-#Initialize pandas dataframes
-generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
-populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
-nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
-
-
-#Run Genetic Algorithm
-generateInitPop()
-GA()
-
-
-logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
-logger.info("BEST ROUTE FOUND={}".format(bestRoute))
-logger.info("\nAlgorithm Completed Successfully.")
-logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved]))   #Will fail if all generations are exhausted
-
-
-if(set_debug == True):
+def outputRecord():
     with open("./logs/visualize_data.txt", "w") as f:
-        f.write(" ".join(str(item) for item in fitness_curve))
-        f.write("\n")
+            f.write(" ".join(str(item) for item in fitness_curve))
+            f.write("\n")
 
-    rname = "./logs/test_GA_{}.csv".format(data)
+        rname = "./logs/test_GA_{}.csv".format(data)
 
     try:
         with open(rname, "r") as f:
@@ -488,4 +421,81 @@ if(set_debug == True):
 
     graphing()
 
-logger.info("All done")
+#Data Logging
+def logging_setup():
+    global logger
+    
+    logger = logging.getLogger('tsp_ga')
+    fname = "./logs/test_log/TSP_GA_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + data +"_"+ str(populationSize) + "_" + str(mutationRate) + ".log"
+
+    logger.setLevel(logging.INFO)
+    # create file handler which logs even debug messages
+    if(set_debug == True): 
+        fh = logging.FileHandler(fname)
+        fh.setLevel(logging.INFO)
+    ch = logging.StreamHandler()
+    ch.setLevel(logging.INFO)
+    
+    if(set_debug == True): 
+        logger.addHandler(fh)
+    logger.addHandler(ch)
+
+
+    logger.info("TSP USING Genetic Algorithm\nDeveloped by Jugen Gawande")
+    logger.info(str(datetime.now()))
+    logger.info("\nPOPULATION SIZE={pop} \nMUTATION RATE={mut} \nDATASET SELECTED={name}".format(pop =populationSize, mut = mutationRate, name = data))
+
+
+def initializeAlgorithm():
+    global data, data_type_flag, populationSize, mutationRate, genCount, dead_count, cx_opt, set_debug, data_cordinate, data_fname
+
+    data = CONFIG['DATASET']['FILE_NAME']
+    data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
+    populationSize = CONFIG.getint('GENETIC', 'POP_SIZE')
+    if (populationSize < 1):
+        logger.warning("Population size not enough")
+        sys.exit()
+    mutationRate = CONFIG.getfloat('GENETIC', 'MUTATION_RATE')
+    genCount = CONFIG.getint('GENETIC', 'GEN_COUNT')
+    dead_count = CONFIG.getint('GENETIC', 'DEAD_COUNTER')
+    cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
+    set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
+    data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
+
+    data_fname = "./dataset/" + data + ".txt"
+
+
+
+if __name__ == '__main__':
+        
+    initializeAlgorithm()
+    logging_setup()
+
+
+    if data_type_flag == 0:
+        addCity_using_coords()
+
+    else:
+        addCity_using_dist()
+
+    #Initialize pandas dataframes
+    generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
+    populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
+    nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
+
+    #Run Genetic Algorithm
+    generateInitPop()
+    GA()
+
+    logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
+    logger.info("BEST ROUTE FOUND={}".format(bestRoute))
+    logger.info("\nAlgorithm Completed Successfully.")
+    logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved]))   #Will fail if all generations are exhausted
+
+
+    if(set_debug == True):
+        outputRecord()
+
+    logger.info("All done")
+
+

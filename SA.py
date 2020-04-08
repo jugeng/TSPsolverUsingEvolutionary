@@ -226,7 +226,8 @@ def graphing():
 #Data Logging
 def logging_setup():
     global logger
-
+    
+    logger = logging.getLogger('tsp_sa')
     fname = "./logs/test_log/TSP_SA_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + data +"_"+ str(T) + ".log"
 
     logger.setLevel(logging.INFO)
@@ -373,44 +374,24 @@ def SA(arr):
 
     return (calculateSolutionFitness(arr), arr)
 
-#Controller Variables
-data = CONFIG['DATASET']['FILE_NAME']
-data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
-set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
-data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
-T =  CONFIG.getfloat('SIMULATED ANNEALING','TEMPERATURE')
 
-logger = logging.getLogger('tsp_sa')
-logging_setup()
-
-data_fname = "./dataset/" + data + ".txt"   #Select data file to use
-
-if data_type_flag == 0:
-    addCity_using_coords()
-
-else:
-    addCity_using_dist()
-
-route = np.arange(numberOfCities)
-if(len(route) == numberOfCities):
-    logger.info("Initial solution generated successfully")
-else:
-    logger.warning("Problem generating initial population")
-    sys.exit()
-
-minDist,bestRoute = SA(route)
+def initializeAlgorithm():
+    global data, data_type_flag, set_debug, data_cordinate, data_fname, T
     
+    #Controller Variables
+    data = CONFIG['DATASET']['FILE_NAME']
+    data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
+    set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
+    data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
+    T =  CONFIG.getfloat('SIMULATED ANNEALING','TEMPERATURE')
+    
+    data_fname = "./dataset/" + data + ".txt"
 
-logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
-logger.info("BEST ROUTE FOUND={}".format(bestRoute))
-logger.info("\nAlgorithm Completed Successfully.")
-logger.info("FITNESS CURVE:\n{}".format(fitness_curve))   #Will fail if all generations are exhausted
 
-
-if(set_debug == True):
-    with open("./logs/visualize_data.txt", "w") as f:
-        f.write(" ".join(str(item) for item in fitness_curve))
-        f.write("\n")
+def outputRecord():
+    # with open("./logs/visualize_data.txt", "w") as f:
+    #     f.write(" ".join(str(item) for item in fitness_curve))
+    #     f.write("\n")
 
     rname = "./logs/test_SA_{}.csv".format(data)
 
@@ -429,4 +410,39 @@ if(set_debug == True):
 
     graphing()
 
-logger.info("All done")
+
+if __name__ == '__main__':
+
+    initializeAlgorithm()
+    logging_setup()
+
+
+    if data_type_flag == 0:
+        addCity_using_coords()
+
+    else:
+        addCity_using_dist()
+
+
+    route = np.arange(numberOfCities)
+
+
+    if(len(route) == numberOfCities):
+        logger.info("Initial solution generated successfully")
+    else:
+        logger.warning("Problem generating initial population")
+        sys.exit()
+
+    minDist,bestRoute = SA(route)
+        
+
+    logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
+    logger.info("BEST ROUTE FOUND={}".format(bestRoute))
+    logger.info("\nAlgorithm Completed Successfully.")
+    logger.info("FITNESS CURVE:\n{}".format(fitness_curve))   #Will fail if all generations are exhausted
+
+
+    if(set_debug == True):
+        outputRecord()
+
+    logger.info("All done")
