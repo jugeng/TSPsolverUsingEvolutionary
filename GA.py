@@ -396,11 +396,14 @@ def graphing():
 
 
 def outputRecord():
+
+    global generation_fitness
+    
     with open("./logs/visualize_data.txt", "w") as f:
             f.write(" ".join(str(item) for item in fitness_curve))
             f.write("\n")
 
-        rname = "./logs/test_GA_{}.csv".format(data)
+    rname = "./logs/test_GA_{}.csv".format(data)
 
     try:
         with open(rname, "r") as f:
