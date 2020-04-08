@@ -18,7 +18,7 @@ import configparser
 import matplotlib 
 import matplotlib.pyplot as plt
 import sys
-from time import process_time
+from time import time
 
 
 CONFIG = configparser.ConfigParser()                                     
@@ -62,7 +62,7 @@ def addCity_using_coords():
     
     global numberOfCities, cityCoord,distanceMatrix, s_t, e_t
 
-    s_t = process_time()
+    s_t = time()
 
 
     temp_list = []
@@ -86,7 +86,7 @@ def addCity_using_coords():
 def addCity_using_dist():
     
     global distanceMatrix, numberOfCities, s_t, e_t
-    s_t = process_time()
+    s_t = time()
     temp_dist = []
     with open(str(data_fname), "r") as f:
         numberOfCities = int(f.readline())
@@ -104,7 +104,7 @@ def addCity_using_dist():
                     temp_dist = [] 
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
-    e_t = process_time()
+    e_t = time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
 
 
@@ -144,7 +144,7 @@ def generateDistMatrix():
     
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
 
-    e_t = process_time()
+    e_t = time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
     #print(distanceMatrix)
   
@@ -289,7 +289,7 @@ def GA():
     end_point = dead_count
     printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 40)
 
-    s_t = process_time()
+    s_t = time()
 
     while(i < genCount):
         m = minDist
@@ -305,7 +305,7 @@ def GA():
         if (counter == dead_count or i == genCount-1 ):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
-            e_t = process_time()
+            e_t = time()
             logger.info("CPU execution time: {}".format(e_t-s_t))
             break 
         i+=1 

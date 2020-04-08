@@ -113,7 +113,8 @@ def addCity_using_dist():
                     temp_dist = []
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
- 
+    e_t = time()
+    logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
 
 
 def generateDistMatrix():
