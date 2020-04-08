@@ -19,3 +19,6 @@ _pycache__/
 #ignore config file
 controller.ini
 
+test
+
+*.svg
