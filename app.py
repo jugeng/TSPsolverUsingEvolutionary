@@ -51,18 +51,6 @@ populationMatrix = 0
 nextGenerationMatrix = 0
 
 
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    # Print iterations progress
-  
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    eel.set_progress(percent)()
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print('\r{} {} |{}| {}% {} CURR_MIN_DIST={:.2f}'.format(prefix,iteration, bar, percent, suffix, minDist), end = printEnd )
-    # Print New Line on Complete
-    if iteration == total: 
-        print("\n")
-
 @eel.expose
 def addCity_using_coords(city_array):
     
@@ -267,7 +255,7 @@ def GA():
     i=0
     end_point = dead_count
 
-    printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 40)
+
 
     s_t = process_time()
 
