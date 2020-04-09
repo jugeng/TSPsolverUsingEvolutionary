@@ -55,16 +55,6 @@ e_t = 0.0
 scale_factor = 0.000125
 
 
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    # Print iterations progress
-
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print('\r{} {} |{}| {}% {} CURR_MIN_DIST={:.2f}'.format(prefix,iteration, bar, percent, suffix, minDist/scale_factor), end = printEnd )
-    # Print New Line on Complete
-    if iteration == total:
-        print("\n")
 
 
 def addCity_using_coords():
@@ -78,7 +68,9 @@ def addCity_using_coords():
     try:
         with open(str(data_fname), "r") as f:
             for line in f:
-                x, y = line.split()
+                
+                i, x, y = line.split()
+                 
                 temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
             cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
         numberOfCities =  len(cityCoord)
@@ -89,7 +81,9 @@ def addCity_using_coords():
     except:
         logger.warning("Dataset could not be loaded")
         sys.exit()
-    #print(cityCoord, numberOfCities)
+
+
+    # print(cityCoord, numberOfCities)
 
 
 def addCity_using_dist():
@@ -129,7 +123,7 @@ def generateDistMatrix():
 
     for i in range(numberOfCities):
         temp_dist = []
-        for j in range(numberOfCities):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
+        for j in range(i):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
             a = cityCoord.iloc[i].values
             b = cityCoord.iloc[j].values
             #Find Euclidean distance between points
@@ -151,35 +145,19 @@ def generateDistMatrix():
                 distance = R * c
                 temp_dist.append(float(distance))
 
+        temp_dist.extend([0.0] * (numberOfCities - len(temp_dist))) #Padding
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
 
     e_t = time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
-    #print(distanceMatrix)
+    # print(distanceMatrix)
 
 
 def generateInitPop():
     global numberOfCities, populationSize
 
-    # pop = [0]
-    # for i in range(numberOfCities):
-
-    #     sort_dist = distanceMatrix.iloc[i]
-    #     sort_dist = sort_dist.sort_values(ascending=True)
-
-
-    #     for index, row in sort_dist.iteritems():
-    #         if row == 0.0:
-    #             continue
-
-    #         if index in pop:
-    #             continue
-    #         else:
-    #             pop.append(index)
-    #             break
-
-    # pop = np.asarray(pop)
     pop = np.arange(numberOfCities)
+    bestRoute = pop 
     populationMatrix.loc[len(populationMatrix)] = pop
 
     for i in range(populationSize-1):
@@ -218,7 +196,10 @@ def calculateFitness():
     for i,individual in populationMatrix.iterrows():
         distance = 0
         for j in range(len(individual)-1):
-            distance += distanceMatrix.iat[individual[j],individual[j+1]]
+            if(individual[j] < individual[j+1]):
+                distance += distanceMatrix.iat[individual[j+1],individual[j]]
+            else:
+                distance += distanceMatrix.iat[individual[j],individual[j+1]]
 
         fitness.append( 1 / distance )  #For routes with smaller distance to have highest fitness
 
@@ -291,9 +272,13 @@ def nextGeneration():
 def calculateSolutionFitness(arr):
     distance = 0
     for j in range(len(arr)-1):
-        distance += tempDistMatx.iat[arr[j],arr[j+1]]
+        if(arr[j] < arr[j+1]):
+            distance += tempDistMatx.iat[arr[j+1],arr[j]]
+        else:
+            distance += tempDistMatx.iat[arr[j],arr[j+1]]
 
     return (distance)
+
 
 
 def reverse(arr, a, b):
@@ -380,9 +365,9 @@ def testNeighbor(arr):
         return (transport(arr, a, b))
 
 
-def SA(arr, val, dist, ret1, ret2):
+def SA(arr, val, t , dist, ret1, ret2):
     global T, tempDistMatx
-    T = 0.2
+    T = t
     tempDistMatx = dist
     accepted = math.inf
     count = len(arr)
@@ -407,10 +392,26 @@ def GA():
 
     counter = 0
     i=0
-    
+
     s_t = time()
 
     end = False
+
+    n = minDist
+    b = bestRoute
+    
+    res = Value('f', minDist, lock=False )
+    res_arr = Array('i', numberOfCities, lock=False )
+    t = 0.05
+    sa = Process(target = SA, args=(b,n,t, distanceMatrix, res, res_arr))
+    switch = True
+    sa.start()
+
+    
+    if(res.value < minDist):
+        minDist = res.value
+        bestRoute = res_arr[:]
+
     while(1):
         m = minDist
 
@@ -423,13 +424,15 @@ def GA():
             counter += 1
 
         else:
+            print(minDist / scale_factor)
             counter = 0
 
 
         if(counter == int(dead_count / 4) and switch == False):
             res = Value('f', minDist, lock=False )
             res_arr = Array('i', numberOfCities, lock=False )
-            sa = Process(target = SA, args=(b,n, distanceMatrix, res, res_arr))
+            t = (1/i)*10
+            sa = Process(target = SA, args=(b,n,t, distanceMatrix, res, res_arr))
             switch = True
             sa.start()
 
@@ -438,7 +441,8 @@ def GA():
 
             res = Value('f', minDist, lock=False )
             res_arr = Array('i', numberOfCities, lock=False )
-            sa = Process(target = SA, args=(b,n, distanceMatrix, res, res_arr))
+            t = (1/i)*10
+            sa = Process(target = SA, args=(b,n,t, distanceMatrix, res, res_arr))
             switch = True
             sa.start()
 
@@ -449,6 +453,9 @@ def GA():
             if(res.value < minDist):
                 minDist = res.value
                 bestRoute = res_arr[:]
+
+                print("Inserted: ",minDist / scale_factor)
+
                 counter = 0
             else: end = True
 
@@ -459,6 +466,9 @@ def GA():
                 if(res.value < minDist):
                     minDist = res.value
                     bestRoute = res_arr[:]
+
+                    print("Inserted: ",minDist / scale_factor)
+
                     counter = 0
 
         if(end == True):
@@ -467,7 +477,7 @@ def GA():
             e_t = time()
             logger.info("CPU execution time: {}".format(e_t-s_t))
             break
-
+        
         else:
             i+=1
 
@@ -548,7 +558,7 @@ def graphing():
 
 
     if(set_debug == True):
-        hjhsda = "./logs/output_curve/G_MGASA_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist / scale_factor))
+        hjhsda = "./logs/output_curve/G_MGASA_{}_{}_{}.svg".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist / scale_factor))
         fig.savefig(hjhsda, facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
     #plt.show()   #To view graph after generating

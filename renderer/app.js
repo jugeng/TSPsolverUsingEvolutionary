@@ -8,6 +8,7 @@ var stage = new Konva.Stage({
     height: 2000,
     draggable: true
 });
+
 var citylayer = new Konva.Layer();
 var routelayer = new Konva.Layer();
 stage.add(routelayer)
@@ -41,6 +42,7 @@ stage.on('wheel', e => {
     stage.position(newPos);
     stage.batchDraw();
 });
+
 
 var best_route = []
 
@@ -92,12 +94,11 @@ function algoRun() {
     addCity();
 
     if (array.length > 0) {
-        init = eel.initialize()()
         document.getElementById("run").disabled = true
         document.getElementById("push_city").disabled = true
         document.getElementById("run").innerHTML = "Running"
 
-        result = eel.runAlgorithm()((res) => {
+        result = eel.runAlgo(0.5)((res) => {
             document.getElementById("run").disabled = false
             document.getElementById("push_city").disabled = false
             document.getElementById("run").innerHTML = "Run Algorithm"
@@ -110,8 +111,8 @@ function algoRun() {
 }
 
 eel.expose(update_distance)
-
 function update_distance(val, new_route) {
+    console.log(new_route)
     document.getElementById("minimum_distance").innerHTML = "Distance: " + val
     best_route = new_route.split(" ")
     route_draw()
@@ -191,8 +192,6 @@ function des_city(val) {
 }
 
 
-
-
 function reset_array() {
     var list = document.getElementById("city_list");
 
@@ -205,13 +204,7 @@ function reset_array() {
     citylayer.batchDraw()
 }
 
-function algo_start() {
 
-}
-
-function reset_view() {
-
-}
 
 function draw_cities() {
     var maxRowX = array.map(function (row) {
@@ -262,19 +255,5 @@ function route_draw() {
     }
     routelayer.batchDraw()
 
-    // if(best_route == array.length){
-    //     for(i = 0; i < best_route.length-1; i++){
-    //         var route = new Konva.Line({
-    //             x1: array[i][0],
-    //             x2: array[i+1][0],
-    //             y1: array[i][1],
-    //             y2: array[i+1][1],
-    //             fill: '#feb062'
-    //         })
-
-    //         routelayer.add(line)
-    //     }
-
-    // }
 
 }

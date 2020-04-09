@@ -221,7 +221,7 @@ def calculateFitness():
             bestRoute = np.copy(individual)
              
     
-    fitness_curve.append(round(minDist  / scale_factor, 2))
+    fitness_curve.append(round(minDist  / scale_factor, 4))
     fitnessMatrix = np.asarray(fitness)
     totalFitness = np.sum(fitnessMatrix)
     fitnessMatrix = np.divide(fitnessMatrix,totalFitness)   #Normalizing the fitness values between [0-1]

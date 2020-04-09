@@ -1,6 +1,6 @@
-# Developed by Jugen Gawande 
+# Developed by Jugen Gawande
 # This is a python script to solve Travelling Salesman Problem using an evolutionary optimization
-# algorithm called Genetic Algorithm. 
+# algorithm called Genetic Algorithm.
 
 import numpy as np
 import random
@@ -9,19 +9,17 @@ import pandas as pd
 
 from os import system
 
-import crossover
-import mutation
 
 from datetime import datetime
 import logging
-import configparser 
-import matplotlib 
+import configparser
+import matplotlib
 import matplotlib.pyplot as plt
 import sys
 from time import time
 
 
-CONFIG = configparser.ConfigParser()                                     
+CONFIG = configparser.ConfigParser()
 CONFIG.read('controller.ini')
 
 #Calculators
@@ -45,52 +43,55 @@ e_t = 0.0
 scale_factor = 0.000125
 
 
-def printProgressBar (iteration, total, prefix = '', suffix = '', decimals = 1, length = 100, fill = '█', printEnd = "\r"):
-    # Print iterations progress
-  
-    percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
-    filledLength = int(length * iteration // total)
-    bar = fill * filledLength + '-' * (length - filledLength)
-    print('\r{} {} |{}| {}% {} CURR_MIN_DIST={:.2f}'.format(prefix,iteration, bar, percent, suffix, minDist/scale_factor), end = printEnd )
-    # Print New Line on Complete
-    if iteration == total: 
-        print("\n")
 
- 
+
 def addCity_using_coords():
-    
+
     global numberOfCities, cityCoord,distanceMatrix, s_t, e_t
 
     s_t = time()
 
 
     temp_list = []
-    try:
-        with open(str(data_fname), "r") as f:
-            for line in f:
-                x, y = line.split()
-                temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
-            cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
-        numberOfCities =  len(cityCoord) 
-        if numberOfCities > 0:
-            distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-            logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
-            generateDistMatrix()
-    except:
-        logger.warning("Dataset could not be loaded")
-        sys.exit()
-    #print(cityCoord, numberOfCities)
+    # try:
+    #     with open(str(data_fname), "r") as f:
+    #         for line in f:
+    #             i, x, y = line.split()
+    #             temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
+    #         cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
+    #     numberOfCities =  len(cityCoord)
+    #     if numberOfCities > 0:
+    #         distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
+    #         logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
+    #         generateDistMatrix()
+    # except:
+    #     logger.warning("Dataset could not be loaded")
+    #     sys.exit()
+
+
+    with open(str(data_fname), "r") as f:
+        for line in f:
+            i, x, y = line.split()
+            temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
+        cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
+    numberOfCities =  len(cityCoord)
+    if numberOfCities > 0:
+        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
+        logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
+        generateDistMatrix()
     
+    #print(cityCoord, numberOfCities)
+
 
 def addCity_using_dist():
-    
+
     global distanceMatrix, numberOfCities, s_t, e_t
     s_t = time()
     temp_dist = []
     with open(str(data_fname), "r") as f:
         numberOfCities = int(f.readline())
         distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-    
+
         i = 0
         for line in f:
             for val in line.split():
@@ -100,7 +101,7 @@ def addCity_using_dist():
 
                     i = 0
                     distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-                    temp_dist = [] 
+                    temp_dist = []
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
     e_t = time()
@@ -111,7 +112,7 @@ def generateDistMatrix():
 
     global distanceMatrix, s_t, e_t
     global numberOfCities
-    
+
 
     def deg2rad(deg):
         return deg * loc_multiplier
@@ -119,9 +120,9 @@ def generateDistMatrix():
 
     for i in range(numberOfCities):
         temp_dist = []
-        for j in range(numberOfCities):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
-            a = cityCoord.iloc[i].values 
-            b = cityCoord.iloc[j].values   
+        for j in range(i):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
+            a = cityCoord.iloc[i].values
+            b = cityCoord.iloc[j].values
             #Find Euclidean distance between points
 
             #distance = np.linalg.norm(a-b)
@@ -134,22 +135,25 @@ def generateDistMatrix():
                 lat2 = b[0]
                 long1 = a[1]
                 long2 = b[1]
-                dLat = deg2rad(lat2-lat1) 
+                dLat = deg2rad(lat2-lat1)
                 dLon = deg2rad(long2-long1)
                 a = math.sin(dLat/2) * math.sin(dLat/2) + math.cos(deg2rad(lat1)) * math.cos(deg2rad(lat2)) * math.sin(dLon/2) * math.sin(dLon/2)
                 c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
                 distance = R * c
                 temp_dist.append(float(distance))
-    
+
+
+
+
+        temp_dist.extend([0.0] * (numberOfCities - len(temp_dist))) #Padding
         distanceMatrix.loc[len(distanceMatrix)] = temp_dist
 
     e_t = time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
     #print(distanceMatrix)
- 
 
 #Graphing
-def graphing(): 
+def graphing():
 
 
     fig = plt.figure(figsize = (15,8))
@@ -180,13 +184,11 @@ def graphing():
 
     plt.title("Fitness Evolution Curve", loc='center' ,fontname="Calibri",fontweight="bold", fontsize=18)
 
-    x= []
+    x = np.arange(len(fitness_curve))
     y= []
 
     for i in range(len(fitness_curve)):
-        x.append(fitness_curve[i][0])
-        y.append(fitness_curve[i][1])
-
+        y.append(fitness_curve[i])
 
     ax.plot(x,y, color = ("#CC3363"), linewidth = 2)
     #ax.set_xlim(ax.get_xlim()[::-1])
@@ -196,49 +198,45 @@ def graphing():
     fig.text(0.8, 0.78, 'MIN DIST={:.4f}'.format(minDist / scale_factor), color = '#F5F1E3')
     fig.text(0.8, 0.76, 'DATASET={}'.format(data), color = '#F5F1E3')
     fig.text(0.8, 0.74, 'TEMPERATURE={}'.format(CONFIG.getfloat('SIMULATED ANNEALING','TEMPERATURE')), color = '#F5F1E3')
-    
+
     fig.text(0.57, 0.02, "TSP solved using Simulated Annealing Algorithm [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
 
     logger.info("Fitness Curve generated")
 
-    c=0.95
-    x = 0.01
-    for i in range(len(fitness_curve)):
-        if(c < 0.1):
-            c = 0.95
-            x = 0.88
-        fig.text(x,c,"[{}]{}".format(fitness_curve[i][0],fitness_curve[i][1]), fontsize=8, color = "#FAC9B8" )
-        c-=0.02
+    # c=0.95
+    # x = 0.01
+    # for i in range(len(fitness_curve)):
+    #     if(c < 0.1):
+    #         c = 0.95
+    #         x = 0.88
+    #     fig.text(x,c,"[{}]{}".format(i,fitness_curve[i]), fontsize=8, color = "#FAC9B8" )
+    #     c-=0.02
 
-    plt.subplots_adjust(left=0.15)
+    # plt.subplots_adjust(left=0.15)
 
-    
+
     if(set_debug == True):
         hjhsda = "./logs/output_curve/G_SA_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist / scale_factor))
         fig.savefig(hjhsda, facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
-    #plt.show()   #To view graph after generating 
-
-
-
-
+    #plt.show()   #To view graph after generating
 
 #Data Logging
 def logging_setup():
     global logger
-    
+
     logger = logging.getLogger('tsp_sa')
     fname = "./logs/test_log/TSP_SA_" + datetime.now().strftime("%d-%m-%y %H_%M") + "_" + data +"_"+ str(T) + ".log"
 
     logger.setLevel(logging.INFO)
     # create file handler which logs even debug messages
-    if(set_debug == True): 
+    if(set_debug == True):
         fh = logging.FileHandler(fname)
         fh.setLevel(logging.INFO)
     ch = logging.StreamHandler()
     ch.setLevel(logging.INFO)
-    
-    if(set_debug == True): 
+
+    if(set_debug == True):
         logger.addHandler(fh)
     logger.addHandler(ch)
 
@@ -251,7 +249,10 @@ def logging_setup():
 def calculateSolutionFitness(arr):
     distance = 0
     for j in range(len(arr)-1):
-        distance += distanceMatrix.iat[arr[j],arr[j+1]]
+        if(arr[j] < arr[j+1]):
+            distance += distanceMatrix.iat[arr[j+1],arr[j]]
+        else:
+            distance += distanceMatrix.iat[arr[j],arr[j+1]]
 
     return (distance)
 
@@ -276,18 +277,18 @@ def reverse(arr, a, b):
         return (np.concatenate((x,w,z)))
 
     elif(del_e > 0):
-        pr = math.exp((-del_e) / (T) ) 
+        pr = math.exp((-del_e) / (T) )
         a = random.random()
 
         if (pr > a):
-            
+
             return (np.concatenate((x,w,z)))
         else: return (arr)
     else: return(arr)
 
 
 def transport(arr, a, b):
-   
+
     x = arr[:a]
     y = arr[a:b+1]
     z = arr[b+1:]
@@ -310,12 +311,12 @@ def transport(arr, a, b):
         return(arr)
 
     del_e = s_dash - s
-    
-    if(del_e < 0):    
+
+    if(del_e < 0):
         return (np.concatenate((x,z[:u],y,z[u:])))
 
     elif(del_e > 0):
-        pr = math.exp((-del_e) / (T) ) 
+        pr = math.exp((-del_e) / (T) )
         a = random.random()
 
         if (pr > a):
@@ -324,7 +325,7 @@ def transport(arr, a, b):
         else: return (arr)
 
     else: return(arr)
-  
+
 
 def testNeighbor(arr):
     r = random.random()
@@ -338,7 +339,7 @@ def testNeighbor(arr):
 
     else:
         return (transport(arr, a, b))
-    
+
 
 def SA(arr):
     global T, minDist, bestRoute, s_t, e_t
@@ -347,27 +348,32 @@ def SA(arr):
     s_t = time()
 
     while(accepted != 0):
+        
         accepted = 0
+
         for i in range(100 * len(arr)):
             new_arr = testNeighbor(arr)
-            comparison = new_arr == arr
-            if(comparison.all() == False):
+
+            if(np.array_equal(new_arr, arr) == False):
                 accepted += 1
                 arr = new_arr
 
             if(accepted > 10 * len(arr)):
                 break
 
+        distance = calculateSolutionFitness(arr)
+        
+        
+        logger.info("Temp: {:.3g} Dist:{:.3f} Accepted:{}".format(T,minDist / scale_factor,accepted))
+        
         T *= alpha_temp
 
-
-        distance = calculateSolutionFitness(arr)
         if(minDist > distance):
             minDist = distance
             bestRoute = arr
-            fitness_curve.append([format(T, '.3g'), round(minDist  / scale_factor, 4)])
-        print("\rAccepted: {} currDist: {}".format(accepted, round(minDist  / scale_factor, 4) ), end = "\r" )
+            
 
+        fitness_curve.append(round(minDist  / scale_factor, 4))
 
     e_t = time()
     logger.info("CPU execution time: {}".format(e_t-s_t))
@@ -377,14 +383,14 @@ def SA(arr):
 
 def initializeAlgorithm():
     global data, data_type_flag, set_debug, data_cordinate, data_fname, T
-    
+
     #Controller Variables
     data = CONFIG['DATASET']['FILE_NAME']
     data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
     set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
     data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
     T =  CONFIG.getfloat('SIMULATED ANNEALING','TEMPERATURE')
-    
+
     data_fname = "./dataset/" + data + ".txt"
 
 
@@ -433,8 +439,10 @@ if __name__ == '__main__':
         logger.warning("Problem generating initial population")
         sys.exit()
 
+
+
     minDist,bestRoute = SA(route)
-        
+
 
     logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
