@@ -60,12 +60,14 @@ def update_gen_graph(v):
 
     m = max(generation_fitness[v])
     colors = ['lightslategray'] * t
+    dist = ['']* t 
 
     for i, val in enumerate(generation_fitness[v]):
         if val == m:
             colors[i] =  'crimson'
+            dist[i] = 1 / val
 
-    data = go.Bar(y=generation_fitness[v],x = np.arange(t), width=0.2, marker_color = colors)
+    data = go.Bar(y=generation_fitness[v],x = np.arange(t), text =  dist , width=0.2, marker_color = colors)
     layout = go.Layout(
         title= 'Generation:{}'.format(v), 
         yaxis = dict(

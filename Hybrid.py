@@ -21,7 +21,9 @@ import sys
 from time import time
 
 from multiprocessing import Process, Value, Array
-import threading
+from  threading import Thread
+
+from queue import Queue
 
 T = 0.5
 alpha_temp = 0.9
@@ -49,11 +51,11 @@ switch = False
 fitness_curve = []
 
 
+
 #Performance Measure
 s_t = 0.0
 e_t = 0.0
 scale_factor = 0.000125
-
 
 
 
@@ -70,7 +72,6 @@ def addCity_using_coords():
             for line in f:
                 
                 i, x, y = line.split()
-                 
                 temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
             cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
         numberOfCities =  len(cityCoord)
@@ -153,22 +154,49 @@ def generateDistMatrix():
     # print(distanceMatrix)
 
 
+
+
+def findChromo(pop ):
+    global temp_pop
+
+    r = random.random()
+    if(r > 0.5):
+        pop = SA(pop,0.0, 0.0025, numberOfCities, distanceMatrix, res, res_arr)
+    else:
+        np.random.shuffle(pop[1:])
+    temp_pop.append(pop)
+    
+    
+
+
+threads = []
+
 def generateInitPop():
-    global numberOfCities, populationSize
+    global numberOfCities, populationSize, threads
 
     pop = np.arange(numberOfCities)
     bestRoute = pop 
     populationMatrix.loc[len(populationMatrix)] = pop
 
+
     for i in range(populationSize-1):
-        np.random.shuffle(pop[1:])
-        populationMatrix.loc[len(populationMatrix)] = pop
+        worker = Thread(target=findChromo, args=(pop,))
+        worker.start()
+        threads.append(worker)
+
+    for t in threads:
+        t.join()
+
+    for c in temp_pop:
+        populationMatrix.loc[len(populationMatrix)] = c
 
     logger.info("{} intial chromorsome populated".format(len(populationMatrix.index)))
-    if (len(populationMatrix.index) == populationSize):
 
+    if (len(populationMatrix.index) == populationSize):
         logger.info("Initial population generated successfully")
         calculateFitness()
+
+ 
 
 
 def matingPoolSelection():
@@ -355,7 +383,7 @@ def testNeighbor(arr):
     r = random.random()
     size = len(arr)
     a = random.randint(1,size-3)
-    b = random.randint(a+1, size-1)
+    b = random.randint(a+1, size-2)
     newarr = np.array([])
 
     if r > 0.5:
@@ -365,45 +393,54 @@ def testNeighbor(arr):
         return (transport(arr, a, b))
 
 
-def SA(arr, val, t , dist, ret1, ret2):
+def SA(arr, val, t, endp, dist, ret1, ret2):
     global T, tempDistMatx
+
     T = t
     tempDistMatx = dist
     accepted = math.inf
     count = len(arr)
     accepted = count + 1
-    while(accepted != 1):
+
+    # while(accepted >= endp):
+    k=0
+    while(k != 10):
         accepted = 0
         # for i in range(50*len(arr)):
-        for i in range(10*count):
+        for i in range(50*count):
             new_arr = testNeighbor(arr)
             if(np.array_equal(new_arr, arr) == False):
                 accepted += 1
                 arr = new_arr
 
         T *= alpha_temp
+        k += 1
 
     ret1.value = calculateSolutionFitness(arr)
     ret2[:] = arr
+    
+    return(arr)
 
 
 def GA():
     global nextGenerationMatrix, populationMatrix, bestRoute, dead_count, genEvolved,s_t, e_t, switch, minDist
+    global res, res_arr
 
     counter = 0
     i=0
 
-    s_t = time()
 
     end = False
 
     n = minDist
     b = bestRoute
     
+
+    print(minDist / scale_factor)
     res = Value('f', minDist, lock=False )
     res_arr = Array('i', numberOfCities, lock=False )
-    t = 0.05
-    sa = Process(target = SA, args=(b,n,t, distanceMatrix, res, res_arr))
+    t = 0.005
+    sa = Process(target = SA, args=(b,n,t,numberOfCities/4, distanceMatrix, res, res_arr))
     switch = True
     sa.start()
 
@@ -429,22 +466,19 @@ def GA():
 
 
         if(counter == int(dead_count / 4) and switch == False):
-            res = Value('f', minDist, lock=False )
-            res_arr = Array('i', numberOfCities, lock=False )
+         
             t = (1/i)*10
-            sa = Process(target = SA, args=(b,n,t, distanceMatrix, res, res_arr))
+            sa = Process(target = SA, args=(b,n,t,1, distanceMatrix, res, res_arr))
             switch = True
             sa.start()
 
         #Reached End
         if (counter == dead_count and switch == False):
-
-            res = Value('f', minDist, lock=False )
-            res_arr = Array('i', numberOfCities, lock=False )
-            t = (1/i)*10
-            sa = Process(target = SA, args=(b,n,t, distanceMatrix, res, res_arr))
-            switch = True
-            sa.start()
+            end = True
+        #     t = (1/i)*10
+        #     sa = Process(target = SA, args=(b,n,t,1, distanceMatrix, res, res_arr))
+        #     switch = True
+        #     sa.start()
 
         #Reached End
         if(counter >= dead_count and switch == True):
@@ -474,8 +508,7 @@ def GA():
         if(end == True):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
-            e_t = time()
-            logger.info("CPU execution time: {}".format(e_t-s_t))
+            
             break
         
         else:
@@ -639,7 +672,6 @@ if __name__ == '__main__':
     initializeAlgorithm()
     loggingSetup()
 
-
     if data_type_flag == 0:
         addCity_using_coords()
 
@@ -647,15 +679,22 @@ if __name__ == '__main__':
         addCity_using_dist()
 
 
+    res = Value('f', minDist, lock=False )
+    res_arr = Array('i', numberOfCities, lock=False )
+
     #Initialize pandas dataframes
     generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
     populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
     nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
 
     #Run Genetic Algorithm
+    s_t = time()
+
     generateInitPop()
     GA()
 
+    e_t = time()
+    logger.info("CPU execution time: {}".format(e_t-s_t))
 
     logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))

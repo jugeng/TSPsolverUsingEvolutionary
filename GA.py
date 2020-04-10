@@ -69,7 +69,7 @@ def addCity_using_coords():
     try:
         with open(str(data_fname), "r") as f:
             for line in f:
-                x, y = line.split()
+                i, x, y = line.split()
                 temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
             cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
         numberOfCities =  len(cityCoord) 
@@ -291,7 +291,7 @@ def GA():
 
     s_t = time()
 
-    while(i < genCount):
+    while(True):
         m = minDist
 
         nextGeneration()
@@ -302,7 +302,7 @@ def GA():
             counter = 0
             end_point = i + dead_count 
 
-        if (counter == dead_count or i == genCount-1 ):
+        if (counter == dead_count):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
             e_t = time()
