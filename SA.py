@@ -28,7 +28,6 @@ alpha_temp = 0.9
 
 loc_multiplier = math.pi / 180
 
-
 #Result Store
 minDist = math.inf
 bestRoute = []
@@ -36,14 +35,11 @@ bestRoute = []
 #Data-plotting
 fitness_curve = []
 
-
 #Performance Measure
 s_t = 0.0
 e_t = 0.0
 scale_factor = 0.000125
-
-
-
+cityCoord = []
 
 def addCity_using_coords():
 
@@ -51,57 +47,49 @@ def addCity_using_coords():
 
     s_t = time()
 
+    try:
+        with open(str(data_fname), "r") as f:
+            for line in f:
+                i, x, y = line.split()
+                cityCoord.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
 
-    temp_list = []
-    # try:
-    #     with open(str(data_fname), "r") as f:
-    #         for line in f:
-    #             i, x, y = line.split()
-    #             temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
-    #         cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
-    #     numberOfCities =  len(cityCoord)
-    #     if numberOfCities > 0:
-    #         distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-    #         logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
-    #         generateDistMatrix()
-    # except:
-    #     logger.warning("Dataset could not be loaded")
-    #     sys.exit()
+        numberOfCities =  len(cityCoord)
 
+        if numberOfCities > 0:
+            distanceMatrix = []
+            logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
+            generateDistMatrix()
 
-    with open(str(data_fname), "r") as f:
-        for line in f:
-            i, x, y = line.split()
-            temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
-        cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
-    numberOfCities =  len(cityCoord)
-    if numberOfCities > 0:
-        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-        logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
-        generateDistMatrix()
+    except:
+        logger.warning("Dataset could not be loaded")
+        sys.exit()
     
+    
+ 
     #print(cityCoord, numberOfCities)
 
 
 def addCity_using_dist():
 
     global distanceMatrix, numberOfCities, s_t, e_t
-    s_t = time()
-    temp_dist = []
-    with open(str(data_fname), "r") as f:
-        numberOfCities = int(f.readline())
-        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
 
-        i = 0
+    s_t = time()
+
+    
+    with open(str(data_fname), "r") as f:
+        distanceMatrix = []
+        dist_row = []
+
         for line in f:
             for val in line.split():
-                temp_dist.append(float(val))
-                i += 1
-                if i == numberOfCities:
+                dist_row.append(float(val)*scale_factor)
 
-                    i = 0
-                    distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-                    temp_dist = []
+                
+            distanceMatrix.append (dist_row)
+            dist_row = []
+
+    numberOfCities = len(distanceMatrix[0])
+ 
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
     e_t = time()
@@ -117,18 +105,18 @@ def generateDistMatrix():
     def deg2rad(deg):
         return deg * loc_multiplier
 
-
     for i in range(numberOfCities):
         temp_dist = []
         for j in range(i):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
-            a = cityCoord.iloc[i].values
-            b = cityCoord.iloc[j].values
+            a = cityCoord[i]
+            b = cityCoord[j]
             #Find Euclidean distance between points
 
             #distance = np.linalg.norm(a-b)
             if (data_cordinate == True):
-                distance = np.linalg.norm(a-b)
+                distance = math.sqrt(math.pow(b[0]-a[0], 2) + math.pow(b[1] - a[1], 2 ))
                 temp_dist.append(float(distance))   #Using python list comprehension for better performance
+
             else:
                 R = 6371 #Radius of the earth in km
                 lat1 = a[0]
@@ -142,12 +130,9 @@ def generateDistMatrix():
                 distance = R * c
                 temp_dist.append(float(distance))
 
-
-
-
-        temp_dist.extend([0.0] * (numberOfCities - len(temp_dist))) #Padding
-        distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-
+        
+        distanceMatrix.append (temp_dist)
+    
     e_t = time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
     #print(distanceMatrix)
@@ -248,64 +233,70 @@ def logging_setup():
 
 def calculateSolutionFitness(arr):
     distance = 0
+    
     for j in range(len(arr)-1):
         if(arr[j] < arr[j+1]):
-            distance += distanceMatrix.iat[arr[j+1],arr[j]]
+            distance += distanceMatrix[arr[j+1]][arr[j]]
+
         else:
-            distance += distanceMatrix.iat[arr[j],arr[j+1]]
+            distance += distanceMatrix[arr[j]][arr[j+1]]
 
     return (distance)
 
 
 def reverse(arr, a, b):
-    x = arr[:a]
-    y = arr[a:b+1]
-    z = arr[b+1:]
+    x = arr[:a].copy()
+    y = arr[a:b+1].copy()
+    z = arr[b+1:].copy()
 
-    w = y[::-1]
+    w = y[::-1].copy()
 
     if (b != len(arr)-1):
-        s = calculateSolutionFitness(np.concatenate(([arr[a-1]],y,[arr[b+1]])))
-        s_dash = calculateSolutionFitness(np.concatenate(([arr[a-1]],w,[arr[b+1]])))
+
+        s = calculateSolutionFitness([arr[a-1], *y, arr[b+1]])
+        s_dash = calculateSolutionFitness([arr[a-1], *w , arr[b+1]])
+
     else:
-        s = calculateSolutionFitness(np.concatenate(([arr[a-1]],y)))
-        s_dash = calculateSolutionFitness(np.concatenate(([arr[a-1]],w)))
+        s =  calculateSolutionFitness([arr[a-1], *y])
+        s_dash = calculateSolutionFitness([arr[a-1],*w])
 
     del_e = s_dash - s
 
     if(del_e < 0):
-        return (np.concatenate((x,w,z)))
+  
+        return ([*x, *w, *z])
 
     elif(del_e > 0):
         pr = math.exp((-del_e) / (T) )
         a = random.random()
 
         if (pr > a):
+            return ([*x, *w, *z])
 
-            return (np.concatenate((x,w,z)))
         else: return (arr)
     else: return(arr)
 
 
 def transport(arr, a, b):
 
-    x = arr[:a]
-    y = arr[a:b+1]
-    z = arr[b+1:]
+    x = arr[:a].copy()
+    y = arr[a:b+1].copy()
+    z = arr[b+1:].copy()
 
-    m = arr[a-1:b+1]
+    m = arr[a-1:b+1].copy()
+
     s = calculateSolutionFitness(m)
 
     if((b-a) > len(arr)-2):
         if(b != len(arr)-1):
             u = random.randint(0,len(z)-1)
             if (u == 0):
-                s_dash = calculateSolutionFitness(np.concatenate(([arr[a-1]], arr[a:b+1], [z[u]])))
+                s_dash = calculateSolutionFitness([arr[a-1], *arr[a:b+1],z[u]]) 
             else:
-                s_dash = calculateSolutionFitness(np.concatenate(([z[u-1]], arr[a:b+1], [z[u]])))
+                s_dash = calculateSolutionFitness([z[u-1], *arr[a:b+1], z[u]])
         else:
             u = random.randint(1,len(x)-1)
-            s_dash = calculateSolutionFitness(np.concatenate(([arr[u]], arr[a:b+1], [arr[u+1]])))
+            s_dash = calculateSolutionFitness([arr[u], *arr[a:b+1], arr[u+1]])
 
     else:
         return(arr)
@@ -313,14 +304,14 @@ def transport(arr, a, b):
     del_e = s_dash - s
 
     if(del_e < 0):
-        return (np.concatenate((x,z[:u],y,z[u:])))
+        return [*x, *z[:u], *y, *z[u:]]
 
     elif(del_e > 0):
         pr = math.exp((-del_e) / (T) )
         a = random.random()
 
         if (pr > a):
-            return (np.concatenate((x,z[:u],y,z[u:])))
+            return [*x, *z[:u], *y, *z[u:]]
 
         else: return (arr)
 
@@ -330,9 +321,11 @@ def transport(arr, a, b):
 def testNeighbor(arr):
     r = random.random()
     size = len(arr)
+
     a = random.randint(1,size-3)
-    b = random.randint(a+1, size-1)
-    newarr = np.array([])
+    b = random.randint(a+1, size-2)
+
+    newarr = []
 
     if r > 0.5:
         return (reverse(arr, a, b))
@@ -352,11 +345,11 @@ def SA(arr):
         accepted = 0
 
         for i in range(100 * len(arr)):
-            new_arr = testNeighbor(arr)
 
-            if(np.array_equal(new_arr, arr) == False):
+            new_arr = testNeighbor(arr)
+            if(new_arr != arr):
                 accepted += 1
-                arr = new_arr
+                arr = new_arr.copy()
 
             if(accepted > 10 * len(arr)):
                 break
@@ -364,16 +357,15 @@ def SA(arr):
         distance = calculateSolutionFitness(arr)
         
         
-        logger.info("Temp: {:.3g} Dist:{:.3f} Accepted:{}".format(T,minDist / scale_factor,accepted))
+        print("\rTemp: {:.2g} Dist:{:.3f} Accepted:{}".format(T, minDist / scale_factor, accepted), end="\r")
         
         T *= alpha_temp
 
         if(minDist > distance):
             minDist = distance
-            bestRoute = arr
-            
+            bestRoute = arr.copy()
 
-        fitness_curve.append(round(minDist  / scale_factor, 4))
+        fitness_curve.append(round(minDist /scale_factor, 4))
 
     e_t = time()
     logger.info("CPU execution time: {}".format(e_t-s_t))
@@ -417,6 +409,38 @@ def outputRecord():
     graphing()
 
 
+"""""""""""""""""""""""""""""Pending"""""""""""""""""""""""""""
+
+def nearestNeighbourSolution(l):
+
+    r = random.randint(1,l-1)
+    arr = [0]
+    arr.append(r)
+    while(len(arr) != l):
+        x = max(distanceMatrix[r])
+        temp = list(x[r] for x in distanceMatrix[r+1:])
+        y = max( temp ) 
+ 
+        if x > y:
+            r = distanceMatrix[r].index(x)
+            if r not in arr:
+                arr.append (r)
+
+        else:
+ 
+            r = temp.index(y) + r + 1 
+            if r not in arr:
+                arr.append (r)
+
+
+
+    print(len(arr), arr)
+    return (arr)
+
+
+
+
+
 if __name__ == '__main__':
 
     initializeAlgorithm()
@@ -430,25 +454,25 @@ if __name__ == '__main__':
         addCity_using_dist()
 
 
-    route = np.arange(numberOfCities)
+    route = list(range(numberOfCities))
+    #route = nearestNeighbourSolution(numberOfCities) 
+    route.append(route[0])
 
-
-    if(len(route) == numberOfCities):
+    if(len(route) == numberOfCities+1):
         logger.info("Initial solution generated successfully")
     else:
         logger.warning("Problem generating initial population")
         sys.exit()
 
 
-
     minDist,bestRoute = SA(route)
+    
 
-
+    logger.info("FITNESS CURVE:\n{}".format(fitness_curve))  
     logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
     logger.info("\nAlgorithm Completed Successfully.")
-    logger.info("FITNESS CURVE:\n{}".format(fitness_curve))   #Will fail if all generations are exhausted
-
+    
 
     if(set_debug == True):
         outputRecord()

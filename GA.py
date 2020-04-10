@@ -64,17 +64,17 @@ def addCity_using_coords():
 
     s_t = time()
 
-
-    temp_list = []
+    cityCoord = []
     try:
         with open(str(data_fname), "r") as f:
             for line in f:
                 i, x, y = line.split()
-                temp_list.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
-            cityCoord = pd.DataFrame(temp_list, columns = ["x-coord", "y-coord"])       #Initiating pandas dataframe
+                cityCoord.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
+                   #Initiating pandas dataframe
         numberOfCities =  len(cityCoord) 
+
         if numberOfCities > 0:
-            distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
+            distanceMatrix = []
             logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
             generateDistMatrix()
     except:
@@ -87,21 +87,19 @@ def addCity_using_dist():
     
     global distanceMatrix, numberOfCities, s_t, e_t
     s_t = time()
-    temp_dist = []
+
+    dist_row = []
     with open(str(data_fname), "r") as f:
-        numberOfCities = int(f.readline())
-        distanceMatrix = pd.DataFrame(columns = np.arange(numberOfCities))
-    
-        i = 0
+        
+        distanceMatrix = []
+
         for line in f:
             for val in line.split():
-                temp_dist.append(float(val))
-                i += 1
-                if i == numberOfCities:
+                dist_row.append(float(val * scale_factor))
 
-                    i = 0
-                    distanceMatrix.loc[len(distanceMatrix)] = temp_dist
-                    temp_dist = [] 
+                
+            distanceMatrix.append (temp_dist)
+            dist_row = [] 
 
     logger.info("Successfully added {cit} cities from data.".format(cit = numberOfCities))
     e_t = time()
@@ -121,13 +119,12 @@ def generateDistMatrix():
     for i in range(numberOfCities):
         temp_dist = []
         for j in range(numberOfCities):  #Generating entire matrix. Can be optimized by generating upward triangle matrix
-            a = cityCoord.iloc[i].values 
-            b = cityCoord.iloc[j].values   
-            #Find Euclidean distance between points
+            a = cityCoord[i]
+            b = cityCoord[j]   
+        
 
-            #distance = np.linalg.norm(a-b)
             if (data_cordinate == True):
-                distance = np.linalg.norm(a-b)
+                distance = math.sqrt(math.pow(b[0]-a[0], 2) + math.pow(b[1] - a[1], 2 ))
                 temp_dist.append(float(distance))   #Using python list comprehension for better performance
             else:
                 R = 6371 #Radius of the earth in km
@@ -142,7 +139,7 @@ def generateDistMatrix():
                 distance = R * c
                 temp_dist.append(float(distance))
     
-        distanceMatrix.loc[len(distanceMatrix)] = temp_dist
+        distanceMatrix.append (temp_dist)
 
     e_t = time()
     logger.info("CPU took {} to complete data loading and distance matrix building".format(e_t-s_t))
@@ -150,36 +147,28 @@ def generateDistMatrix():
   
 
 def generateInitPop():
-    global numberOfCities, populationSize
+    global numberOfCities, populationSize, populationMatrix
     
-    # pop = [0]
-    # for i in range(numberOfCities):
+    pop = list(range(numberOfCities))
+    pop.append(0)
 
-    #     sort_dist = distanceMatrix.iloc[i]
-    #     sort_dist = sort_dist.sort_values(ascending=True)
-        
+    for i in range(populationSize):
+        pop.pop(0)
+        pop.pop()
 
-    #     for index, row in sort_dist.iteritems():
-    #         if row == 0.0:
-    #             continue
-            
-    #         if index in pop:
-    #             continue
-    #         else:
-    #             pop.append(index)
-    #             break 
-    
-    # pop = np.asarray(pop)
-    pop = np.arange(numberOfCities)
-    populationMatrix.loc[len(populationMatrix)] = pop
- 
-    for i in range(populationSize-1):
-        np.random.shuffle(pop[1:])
-        populationMatrix.loc[len(populationMatrix)] = pop
+        pop_t = random.sample(pop, len(pop))
 
-    logger.info("{} intial chromorsome populated".format(len(populationMatrix.index)))
-    if (len(populationMatrix.index) == populationSize):
-        
+        pop_t.append(0)
+        pop_t.insert(0,0)
+
+        populationMatrix.append(pop_t)
+        pop = pop_t.copy()
+
+
+    logger.info("{} intial chromorsome populated".format(len(populationMatrix)))
+
+
+    if (len(populationMatrix) == populationSize):
         logger.info("Initial population generated successfully")
         calculateFitness()
 
@@ -199,39 +188,38 @@ def matingPoolSelection():
     
     index -= 1
 
-    return populationMatrix.iloc[index].values
+    return populationMatrix[index].copy()
     
 
 def calculateFitness():
     global totalFitness, fitnessMatrix, minDist, fitness_curve, bestRoute, nextGenerationMatrix, generation_fitness
 
-    fitness =[]
-    for i,individual in populationMatrix.iterrows():
+    fitnessMatrix.clear()
+
+    for individual in populationMatrix:
         distance = 0
-        for j in range(len(individual)-1):
-            distance += distanceMatrix.iat[individual[j],individual[j+1]]
-   
-        fitness.append( 1 / distance )  #For routes with smaller distance to have highest fitness
+        for j in range(len(individual)-2):
+            distance += distanceMatrix[individual[j]][individual[j+1]]
+
+        fitnessMatrix.append( 1 / distance )  #For routes with smaller distance to have highest fitness
 
         #Updating the best distance variable when a distance that is smaller than all
         #previous calculations is found
         
         if distance < minDist:
             minDist = distance
-            bestRoute = np.copy(individual)
+            bestRoute = individual.copy()
              
-    
     fitness_curve.append(round(minDist  / scale_factor, 4))
-    fitnessMatrix = np.asarray(fitness)
-    totalFitness = np.sum(fitnessMatrix)
-    fitnessMatrix = np.divide(fitnessMatrix,totalFitness)   #Normalizing the fitness values between [0-1]
-    generation_fitness.loc[len(generation_fitness)] = fitnessMatrix  
-    nextGenerationMatrix.loc[len(nextGenerationMatrix)] = bestRoute     #Elitism, moving the fittest gene to the new generation as is
-    nextGenerationMatrix.loc[len(nextGenerationMatrix)] = bestRoute 
 
+    totalFitness = sum(fitnessMatrix)
+    fitnessMatrix = [x / totalFitness for x in fitnessMatrix]      #Normalizing the fitness values between [0-1]
 
-def calculateDistance(loc_1, loc_2):
-    return distanceMatrix.iat[loc_1,loc_2]
+    generation_fitness.append([round(x, 5) for x in fitnessMatrix] )
+
+    nextGenerationMatrix.append(bestRoute)      #Elitism, moving the fittest gene to the new generation as is
+    nextGenerationMatrix.append(bestRoute) 
+
 
 
 def mutateChild(gene):
@@ -240,11 +228,12 @@ def mutateChild(gene):
     if r < mutationRate:
         return mutation.RSM(gene)
 
+
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute
-    newGen = []
 
-    while (len(newGen) < populationSize-2):
+
+    while (len(nextGenerationMatrix) < populationSize-2):
 
         parentA = matingPoolSelection()
         parentB = matingPoolSelection()
@@ -268,16 +257,15 @@ def nextGeneration():
 
             mutateChild(childA)
             mutateChild(childB)
-            newGen.append(childA)
-            newGen.append(childB)
-        else:
-            newGen.append(parentA)
-            newGen.append(parentB)
 
-       
-    nextGenerationMatrix = nextGenerationMatrix.append(newGen[:populationSize-1])
+            nextGenerationMatrix.append(childA)
+            nextGenerationMatrix.append(childB)
+        else:
+            nextGenerationMatrix.append(parentA)
+            nextGenerationMatrix.append(parentB)
+
     populationMatrix = nextGenerationMatrix.copy()
-    nextGenerationMatrix = nextGenerationMatrix.iloc[0:0]
+    nextGenerationMatrix.clear()
     calculateFitness()
 
 
@@ -288,12 +276,12 @@ def GA():
     i=0
     end_point = dead_count
     printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 40)
-
     s_t = time()
 
     while(True):
-        m = minDist
 
+        m = minDist
+      
         nextGeneration()
 
         if(minDist == m):
@@ -308,7 +296,9 @@ def GA():
             e_t = time()
             logger.info("CPU execution time: {}".format(e_t-s_t))
             break 
+
         i+=1 
+
         printProgressBar(i, end_point , prefix = 'Generation:', suffix = 'Evolved', length = 40)
     #logger.info("GENERATIONS EVOLVED={gen}\n".format(gen=i))   #Enable if a stopping condition is maintained  
 
@@ -318,8 +308,9 @@ def GA():
 def graphing(): 
     global fitness_curve, genEvolved
 
-    fig = plt.figure(figsize = (15,8))
-    ax = fig.add_subplot(1, 1, 1)
+    fig = plt.figure(figsize = (25,8))
+    ax = fig.add_subplot(1, 2, 1)
+    sol = fig.add_subplot(1, 2, 2)
 
     # decreasing time
     ax.set_xlabel('Generation', fontname="Calibri",fontweight="bold", fontsize=14)
@@ -346,12 +337,12 @@ def graphing():
 
     plt.title("Fitness Evolution Curve", loc='center' ,fontname="Calibri",fontweight="bold", fontsize=18)
 
-
     x = np.arange(len(fitness_curve))
     y = fitness_curve
 
     x1 = [0]
     y1 = [fitness_curve[0]]
+
     for i in range(genEvolved-1):
         if fitness_curve[i] != fitness_curve[i+1]:
             y1.append(fitness_curve[i+1])
@@ -418,9 +409,8 @@ def outputRecord():
     logger.info("Test results recorded.")
     logger.info("Visualization Data Generated")
 
-    generation_fitness = generation_fitness.round(5)
-    generation_fitness.to_csv("./logs/curve_log/GenFit_GA_data_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M")), header=None, index=None, sep=',', mode='a')
-    generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
+    #generation_fitness.to_csv("./logs/curve_log/GenFit_GA_data_{}.csv".format(datetime.now().strftime("%d-%m-%y %H_%M")), header=None, index=None, sep=',', mode='a')
+    #generation_fitness.to_csv('./logs/visualize_data.txt', header=None, index=None, sep=' ', mode='a')
 
     graphing()
 
@@ -482,18 +472,21 @@ if __name__ == '__main__':
         addCity_using_dist()
 
     #Initialize pandas dataframes
-    generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
-    populationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
-    nextGenerationMatrix = pd.DataFrame(columns=np.arange(numberOfCities))
+    fitnessMatrix = []
+    generation_fitness = []
+    populationMatrix = []
+    nextGenerationMatrix = []
 
     #Run Genetic Algorithm
     generateInitPop()
     GA()
 
+
+    logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved-99])) 
     logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
     logger.info("\nAlgorithm Completed Successfully.")
-    logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved]))   #Will fail if all generations are exhausted
+      #Will fail if all generations are exhausted
 
 
     if(set_debug == True):

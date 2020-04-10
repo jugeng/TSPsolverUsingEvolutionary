@@ -4,7 +4,7 @@ import numpy as np
 def OC_Single(parentA, parentB):
     geneCount = len(parentA) 
 
-    r = random.randint(1, geneCount-1)
+    r = random.randint(1, geneCount-2)
     childA = [] 
     childB = []
 
@@ -70,8 +70,8 @@ def PMS(parentA, parentB):
     childA = []
     childB = []
 
-    a = random.randint(1,geneCount-2)
-    b = random.randint(a+1, geneCount-1)
+    a = random.randint(1,geneCount-4)
+    b = random.randint(a+1, geneCount-2)
       
     childA[a:b+1] = parentB[a:b+1]
     childB[a:b+1] = parentA[a:b+1]
@@ -80,6 +80,7 @@ def PMS(parentA, parentB):
     mapping_b = list(parentA[a:b+1])
     
     def inList(val, arrFrom, arrTo):
+
         res = arrTo[arrFrom.index(val)]
 
         if(res in arrFrom):
@@ -126,8 +127,8 @@ def OC_Multi(parentA, parentB):
     childA = []
     childB = []
 
-    a = random.randint(1,geneCount-2)
-    b = random.randint(a+1, geneCount-1)
+    a = random.randint(1,geneCount-4)
+    b = random.randint(a+1, geneCount-2)
 
     childA = list(parentA[a:b+1])
     childB = list(parentB[a:b+1])
