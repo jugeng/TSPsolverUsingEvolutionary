@@ -43,6 +43,7 @@ fitness_curve = []
 #Performance Measure
 s_t = 0.0
 e_t = 0.0
+ex_time = 0.0
 scale_factor = 0.000125
 
 
@@ -198,14 +199,11 @@ def calculateFitness():
 
     for individual in populationMatrix:
         distance = 0
-        for j in range(len(individual)-2):
+        for j in range(len(individual)-1):
             distance += distanceMatrix[individual[j]][individual[j+1]]
 
         fitnessMatrix.append( 1 / distance )  #For routes with smaller distance to have highest fitness
 
-        #Updating the best distance variable when a distance that is smaller than all
-        #previous calculations is found
-        
         if distance < minDist:
             minDist = distance
             bestRoute = individual.copy()
@@ -215,10 +213,8 @@ def calculateFitness():
     totalFitness = sum(fitnessMatrix)
     fitnessMatrix = [x / totalFitness for x in fitnessMatrix]      #Normalizing the fitness values between [0-1]
 
-    generation_fitness.append([round(x, 5) for x in fitnessMatrix] )
+    #generation_fitness.loc[len(generation_fitness)] = fitnessMatrix
 
-    nextGenerationMatrix.append(bestRoute)      #Elitism, moving the fittest gene to the new generation as is
-    nextGenerationMatrix.append(bestRoute) 
 
 
 
@@ -231,9 +227,12 @@ def mutateChild(gene):
 
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute
+    
+    
+    nextGenerationMatrix.append(bestRoute)      #Elitism, moving the fittest gene to the new generation as is
+    nextGenerationMatrix.append(bestRoute) 
 
-
-    while (len(nextGenerationMatrix) < populationSize-2):
+    while (len(nextGenerationMatrix) < populationSize):
 
         parentA = matingPoolSelection()
         parentB = matingPoolSelection()
@@ -270,11 +269,12 @@ def nextGeneration():
 
 
 def GA():
-    global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count, genEvolved,s_t, e_t
+    global nextGenerationMatrix, populationMatrix, genCount, bestRoute, dead_count, genEvolved,s_t, e_t, ex_time
 
     counter = 0
     i=0
     end_point = dead_count
+
     printProgressBar(0, end_point, prefix = 'Generation:', suffix = 'Complete', length = 40)
     s_t = time()
 
@@ -294,7 +294,9 @@ def GA():
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
             e_t = time()
-            logger.info("CPU execution time: {}".format(e_t-s_t))
+            ex_time = e_t-s_t
+            logger.info("CPU execution time: {}".format(ex_time))
+            
             break 
 
         i+=1 
@@ -306,11 +308,12 @@ def GA():
 
 #Graphing
 def graphing(): 
-    global fitness_curve, genEvolved
+    global fitness_curve, genEvolved, cityCoord
 
-    fig = plt.figure(figsize = (25,8))
+    fig = plt.figure(figsize = (23,8))
+    fig.set_facecolor('#05070A')
+
     ax = fig.add_subplot(1, 2, 1)
-    sol = fig.add_subplot(1, 2, 2)
 
     # decreasing time
     ax.set_xlabel('Generation', fontname="Calibri",fontweight="bold", fontsize=14)
@@ -318,8 +321,8 @@ def graphing():
 
     ax.spines['bottom'].set_color('#FFFAFF')
     ax.spines['left'].set_color('#FFFAFF')
-    ax.spines['top'].set_color('#1B2533')
-    ax.spines['right'].set_color('#1B2533')
+    ax.spines['top'].set_color('#05070A')
+    ax.spines['right'].set_color('#05070A')
 
     for axis in ['top','bottom','left','right']:
         ax.spines[axis].set_linewidth(1)
@@ -330,8 +333,8 @@ def graphing():
     ax.yaxis.label.set_color('#1B9AAA')
     ax.xaxis.label.set_color('#1B9AAA')
     ax.title.set_color('#EEC643')
-    fig.set_facecolor('#1B2533')
-    ax.set_facecolor('#1B2533')
+
+    ax.set_facecolor('#05070A')
 
     ax.grid(True,linewidth = 0.1)
 
@@ -345,47 +348,78 @@ def graphing():
 
     for i in range(genEvolved-1):
         if fitness_curve[i] != fitness_curve[i+1]:
-            y1.append(fitness_curve[i+1])
+            y1.append(round (fitness_curve[i+1], 2 ))
             x1.append(i+1)
 
-    ax.scatter(x1,y1, color = "#F79824" )
-    ax.plot(x,y, color = ("#CC3363"), linewidth = 2)
-    #ax.barh(y1,x1, color = ("#DEF4C6"), height = 0.08, alpha = 0.2 )
-
     gap = math.ceil(genEvolved / 25)
-    plt.xticks(np.arange(0, genEvolved, gap ))
+    plt.xticks(np.arange(0, genEvolved, gap))
+    #ax.scatter(x1,y1, color = "#F79824" )
+    ax.plot(x,y, color = ("#72B01D"), linewidth = 2)
+    
 
-    fig.text(0.8, 0.84, '[INFO]', color = '#86BBD8')
-    fig.text(0.8, 0.8, 'MIN DIST={:.2f}'.format(minDist / scale_factor), color = '#F5F1E3')
-    fig.text(0.8, 0.78, 'GEN EVOLVED={}'.format(genEvolved), color = '#F5F1E3')
-    fig.text(0.8, 0.76, 'DATASET={}'.format(data), color = '#F5F1E3')
-    fig.text(0.8, 0.74, 'POP SIZE={}'.format(populationSize), color = '#F5F1E3')
-    fig.text(0.8, 0.72, 'MUT RATE={}'.format(mutationRate), color = '#F5F1E3')
-    fig.text(0.8, 0.70, 'CROSSOVER OPT={}'.format(CONFIG['OPERATOR']['CROSSOVER_OPERATOR']), color = '#F5F1E3')
+    sol = fig.add_subplot(1, 2, 2)
 
-    fig.text(0.62, 0.02, "TSP solved using Genetic Algorithm [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
+    m = []
+    n = []
+    r = []
+    e = []
 
-    logger.info("Fitness Curve generated")
+    for i in cityCoord:
+        m.append (i[0])
+        n.append (i[1])
 
-    c=0.95
-    x = 0.01
-    for i in range(len(x1)):
-        if(c < 0.1):
-            c = 0.95
-            x = 0.92
-        fig.text(x,c,"[{}]{}".format(x1[i],y1[i]), fontsize=8, color = "#FAC9B8" )
-        c-=0.02
+    for j in bestRoute:
+        r.append(cityCoord[j] [0])
+        e.append (cityCoord[j] [1])
+    
+  
+    sol.spines['bottom'].set_color('#05070A')
+    sol.spines['left'].set_color('#05070A')
+    sol.spines['top'].set_color('#05070A')
+    sol.spines['right'].set_color('#05070A')
+
+    plt.xticks(x, " ")
+    plt.yticks(y, " ")
+
+    sol.set_facecolor('#05070A')
+
+    sol.plot(r, e, color = ("#CC3363"), linewidth = 2)
+    sol.scatter(m[1:],n[1:], color = "#F79824", marker = "^" )
+    sol.scatter(m[0],n[0], color = "#F79824", marker = "s", s = 75)
 
     plt.subplots_adjust(left=0.15)
 
+    fig.text(0.92, 0.84, '[INFO]', color = '#86BBD8')
+    fig.text(0.92, 0.8, 'MIN DIST={:.2f}'.format(minDist / scale_factor), color = '#F5F1E3')
+    fig.text(0.92, 0.78, 'GEN EVOLVED={}'.format(genEvolved), color = '#F5F1E3')
+    fig.text(0.92, 0.76, 'DATASET={}'.format(data), color = '#F5F1E3')
+    fig.text(0.92, 0.74, 'POP SIZE={}'.format(populationSize), color = '#F5F1E3')
+    fig.text(0.92, 0.72, 'MUT RATE={}'.format(mutationRate), color = '#F5F1E3')
+    fig.text(0.92, 0.70, 'CROSSOVER OPT={}'.format(CONFIG['OPERATOR']['CROSSOVER_OPERATOR']), color = '#F5F1E3')
+    fig.text(0.75, 0.02, "TSP solved using Genetic Algorithm [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
+
+    c=0.95
+    x = 0.01
+    if(len(x1) > 90):
+        i = len(x1) - 91
+    else: i = 0
+
+    while( i < len(x1)):
+
+        if(c < 0.05):
+            c = 0.95
+            x = 0.055
+        fig.text(x,c,"[{}]{}".format(x1[i],y1[i]), fontsize=8, color = "#FAC9B8" )
+        i+=1
+        c-=0.02
+
+    logger.info("Fitness Curve generated")
     
     if(set_debug == True):
         hjhsda = "./logs/output_curve/G_GA_{}_{}_{}.png".format(datetime.now().strftime("%d-%m-%y %H_%M"), data, round(minDist / scale_factor))
         fig.savefig(hjhsda, facecolor=fig.get_facecolor(), edgecolor='none')
     logger.info("Fitness Curve exported to logs\nFile name: {}".format(hjhsda) )
  
-
-
 def outputRecord():
 
     global generation_fitness
@@ -394,7 +428,7 @@ def outputRecord():
             f.write(" ".join(str(item) for item in fitness_curve))
             f.write("\n")
 
-    rname = "./logs/test_GA_{}.csv".format(data)
+    rname = "./logs/GA.csv"
 
     try:
         with open(rname, "r") as f:
@@ -404,7 +438,10 @@ def outputRecord():
         index = -1
 
     with open(rname, "a") as f:
-        f.write("Test {}, {}, {}, {}, {}, {}, {:.2f}\n".format(index+2 ,datetime.now(),CONFIG['OPERATOR']['CROSSOVER_OPERATOR'],CONFIG['OPERATOR']['MUTATION_OPERATOR'], populationSize, mutationRate, minDist ))
+        f.write("Test {}, {}, {}, {}, {}, {}, {}, {:.2f}, {}, {}\n".format(
+            index+2 ,datetime.now(),data,CONFIG['OPERATOR']['CROSSOVER_OPERATOR'],
+            CONFIG['OPERATOR']['MUTATION_OPERATOR'], 
+            populationSize, mutationRate,  round ((minDist / scale_factor), 2), len(fitness_curve)-99, round(ex_time, 4)))
 
     logger.info("Test results recorded.")
     logger.info("Visualization Data Generated")
@@ -473,7 +510,7 @@ if __name__ == '__main__':
 
     #Initialize pandas dataframes
     fitnessMatrix = []
-    generation_fitness = []
+    generation_fitness = pd.DataFrame(columns = np.arange(populationSize))
     populationMatrix = []
     nextGenerationMatrix = []
 
@@ -482,7 +519,7 @@ if __name__ == '__main__':
     GA()
 
 
-    logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:genEvolved-99])) 
+    #logger.info("FITNESS CURVE:\n{}".format(fitness_curve[:len(fitness_curve)-98])) 
     logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
     logger.info("\nAlgorithm Completed Successfully.")

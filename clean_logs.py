@@ -32,7 +32,7 @@ def log():
 
 def curve():
     for curve in os.listdir("./logs/output_curve/"):
-        if curve.endswith('.png'):
+        if (curve.endswith('.png') or curve.endswith('.svg')):
             y = "./logs/output_curve/"+curve
             os.unlink(y)
 

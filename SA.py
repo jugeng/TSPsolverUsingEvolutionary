@@ -38,7 +38,9 @@ fitness_curve = []
 #Performance Measure
 s_t = 0.0
 e_t = 0.0
+ex_time = 0.0
 scale_factor = 0.000125
+
 cityCoord = []
 
 def addCity_using_coords():
@@ -141,8 +143,10 @@ def generateDistMatrix():
 def graphing():
 
 
-    fig = plt.figure(figsize = (15,8))
-    ax = fig.add_subplot(1, 1, 1)
+    fig = plt.figure(figsize = (23,8))
+    fig.set_facecolor('#05070A')
+
+    ax = fig.add_subplot(1, 2, 1)
 
     # decreasing time
     ax.set_xlabel('Temperature', fontname="Calibri",fontweight="bold", fontsize=14)
@@ -150,8 +154,8 @@ def graphing():
 
     ax.spines['bottom'].set_color('#FFFAFF')
     ax.spines['left'].set_color('#FFFAFF')
-    ax.spines['top'].set_color('#1B2533')
-    ax.spines['right'].set_color('#1B2533')
+    ax.spines['top'].set_color('#05070A')
+    ax.spines['right'].set_color('#05070A')
 
     for axis in ['top','bottom','left','right']:
         ax.spines[axis].set_linewidth(1)
@@ -162,42 +166,67 @@ def graphing():
     ax.yaxis.label.set_color('#1B9AAA')
     ax.xaxis.label.set_color('#1B9AAA')
     ax.title.set_color('#EEC643')
-    fig.set_facecolor('#1B2533')
-    ax.set_facecolor('#1B2533')
+    
+    ax.set_facecolor('#05070A')
 
     ax.grid(True,linewidth = 0.1)
 
     plt.title("Fitness Evolution Curve", loc='center' ,fontname="Calibri",fontweight="bold", fontsize=18)
-
+    
     x = np.arange(len(fitness_curve))
     y= []
 
     for i in range(len(fitness_curve)):
         y.append(fitness_curve[i])
 
-    ax.plot(x,y, color = ("#CC3363"), linewidth = 2)
-    #ax.set_xlim(ax.get_xlim()[::-1])
-    ax.set_xticklabels([])
+    ax.set_xticklabels([])  
+    ax.plot(x,y, color = ("#72B01D"), linewidth = 2)
+     
 
-    fig.text(0.8, 0.82, '[INFO]', color = '#86BBD8')
-    fig.text(0.8, 0.78, 'MIN DIST={:.4f}'.format(minDist / scale_factor), color = '#F5F1E3')
-    fig.text(0.8, 0.76, 'DATASET={}'.format(data), color = '#F5F1E3')
-    fig.text(0.8, 0.74, 'TEMPERATURE={}'.format(CONFIG.getfloat('SIMULATED ANNEALING','TEMPERATURE')), color = '#F5F1E3')
 
-    fig.text(0.57, 0.02, "TSP solved using Simulated Annealing Algorithm [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
+    sol = fig.add_subplot(1, 2, 2)
+
+    m = []
+    n = []
+    r = []
+    e = []
+
+    for i in cityCoord:
+        m.append (i[0])
+        n.append (i[1])
+
+    for j in bestRoute:
+        r.append(cityCoord[j] [0])
+        e.append (cityCoord[j] [1])
+    
+  
+    sol.spines['bottom'].set_color('#05070A')
+    sol.spines['left'].set_color('#05070A')
+    sol.spines['top'].set_color('#05070A')
+    sol.spines['right'].set_color('#05070A')
+
+    plt.xticks(x, " ")
+    plt.yticks(y, " ")
+
+    sol.set_facecolor('#05070A')
+
+    sol.plot(r, e, color = ("#CC3363"), linewidth = 2)
+    sol.scatter(m,n, color = "#F79824", marker = "^" )
+    sol.scatter(m[0],n[0], color = "#F79824", marker = "s", s = 75)
+    
+    #plt.subplots_adjust(left=0.15)
+
+
+    fig.text(0.92, 0.82, '[INFO]', color = '#86BBD8')
+    fig.text(0.92, 0.78, 'MIN DIST={:.4f}'.format(minDist / scale_factor), color = '#F5F1E3')
+    fig.text(0.92, 0.76, 'DATASET={}'.format(data), color = '#F5F1E3')
+    fig.text(0.92, 0.74, 'TEMPERATURE={}'.format(CONFIG.getfloat('SIMULATED ANNEALING','TEMPERATURE')), color = '#F5F1E3')
+
+    fig.text(0.70, 0.02, "TSP solved using Simulated Annealing Algorithm [Visualizer] {}".format(datetime.now()), color = '#86BBD8')
 
     logger.info("Fitness Curve generated")
 
-    # c=0.95
-    # x = 0.01
-    # for i in range(len(fitness_curve)):
-    #     if(c < 0.1):
-    #         c = 0.95
-    #         x = 0.88
-    #     fig.text(x,c,"[{}]{}".format(i,fitness_curve[i]), fontsize=8, color = "#FAC9B8" )
-    #     c-=0.02
-
-    # plt.subplots_adjust(left=0.15)
+    plt.subplots_adjust(left=0.15)
 
 
     if(set_debug == True):
@@ -252,7 +281,6 @@ def reverse(arr, a, b):
     w = y[::-1].copy()
 
     if (b != len(arr)-1):
-
         s = calculateSolutionFitness([arr[a-1], *y, arr[b+1]])
         s_dash = calculateSolutionFitness([arr[a-1], *w , arr[b+1]])
 
@@ -318,11 +346,12 @@ def transport(arr, a, b):
     else: return(arr)
 
 
+
 def testNeighbor(arr):
     r = random.random()
     size = len(arr)
 
-    a = random.randint(1,size-3)
+    a = random.randint(1,size-4)
     b = random.randint(a+1, size-2)
 
     newarr = []
@@ -335,7 +364,7 @@ def testNeighbor(arr):
 
 
 def SA(arr):
-    global T, minDist, bestRoute, s_t, e_t
+    global T, minDist, bestRoute, s_t, e_t, ex_time
 
     accepted = 1
     s_t = time()
@@ -368,7 +397,8 @@ def SA(arr):
         fitness_curve.append(round(minDist /scale_factor, 4))
 
     e_t = time()
-    logger.info("CPU execution time: {}".format(e_t-s_t))
+    ex_time = e_t-s_t
+    logger.info("CPU execution time: {}".format(ex_time))
 
     return (calculateSolutionFitness(arr), arr)
 
@@ -391,7 +421,7 @@ def outputRecord():
     #     f.write(" ".join(str(item) for item in fitness_curve))
     #     f.write("\n")
 
-    rname = "./logs/test_SA_{}.csv".format(data)
+    rname = "./logs/SA.csv"
 
     try:
         with open(rname, "r") as f:
@@ -401,7 +431,7 @@ def outputRecord():
         index = -1
 
     with open(rname, "a") as f:
-        f.write("Test {}, {}, {}, {}\n".format(index+2 ,datetime.now(),T, minDist / scale_factor ))
+        f.write("Test {}, {}, {}, {:.2g}, {}, {:.3g}, {}\n".format(index+2 ,datetime.now(), data ,CONFIG.getfloat('SIMULATED ANNEALING','TEMPERATURE'), round ((minDist / scale_factor), 2), T, round (ex_time, 4) ))
 
     logger.info("Test results recorded.")
 
@@ -468,7 +498,7 @@ if __name__ == '__main__':
     minDist,bestRoute = SA(route)
     
 
-    logger.info("FITNESS CURVE:\n{}".format(fitness_curve))  
+    #logger.info("FITNESS CURVE:\n{}".format(fitness_curve))  
     logger.info("MINIMAL DISTANCE={}".format(minDist / scale_factor))
     logger.info("BEST ROUTE FOUND={}".format(bestRoute))
     logger.info("\nAlgorithm Completed Successfully.")
