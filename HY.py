@@ -25,7 +25,7 @@ from  threading import Thread
 
 from queue import Queue
 
-T = 0.5
+T = 0.02
 alpha_temp = 0.9
 
 
@@ -169,21 +169,6 @@ threads = []
 def generateInitPop():
     global numberOfCities, populationSize, threads
 
-    # pop = np.arange(numberOfCities)
-    # bestRoute = pop 
-    # populationMatrix.loc[len(populationMatrix)] = pop
-
-    # for i in range(populationSize-1):
-    #     worker = Thread(target=findChromo, args=(pop,))
-    #     worker.start()
-    #     threads.append(worker)
-
-    # for t in threads:
-    #     t.join()
-
-    # for c in temp_pop:
-    #     populationMatrix.loc[len(populationMatrix)] = c
-
 
     pop = list(range(numberOfCities))
     pop.append(0)
@@ -312,13 +297,14 @@ def nextGeneration():
 
 
 def calculateSolutionFitness(arr):
+ 
     distance = 0
     for j in range(len(arr)-1):
 
         if(arr[j] < arr[j+1]):
-            distance += tempDistMatx[arr[j+1]][arr[j]]
+            distance += distanceMatrix[arr[j+1]][arr[j]]
         else:
-            distance += tempDistMatx[arr[j]][arr[j+1]]
+            distance += distanceMatrix[arr[j]][arr[j+1]]
 
     return (distance)
 
@@ -415,21 +401,19 @@ def testNeighbor(arr):
 
 
 
-def SA(arr, val, t, endp, dist, ret1, ret2):
-    global T, tempDistMatx
+def SA():
+    global T
 
-    T = t
-    tempDistMatx = dist
-    accepted = math.inf
-    count = len(arr)
-    accepted = count + 1
-
+    solution_set = []
+    arr = bestRoute.copy()
+    
     # while(accepted >= endp):
     k=0
-    while(k != 50):
+    m = minDist 
+    while(k != 10):
         accepted = 0
         # for i in range(50*len(arr)):
-        for i in range(100*count):
+        for i in range(50*len(arr)):
             new_arr = testNeighbor(arr)
 
             if(new_arr != arr):
@@ -439,86 +423,48 @@ def SA(arr, val, t, endp, dist, ret1, ret2):
         T *= alpha_temp
         k += 1
 
-    ret1.value = calculateSolutionFitness(arr)
-    ret2[:] = arr
-    
+        val = calculateSolutionFitness(arr)
+        print("\rIter: ", k, end="\r")
+        if(m > val):
+            solution_set.append(arr)
+            m = val
 
-    # return(arr)
+    return (solution_set, val)
+  
 
 
 def GA():
     global nextGenerationMatrix, populationMatrix, bestRoute, dead_count, genEvolved,s_t, e_t, switch, minDist, ex_time
-    global res, res_arr
 
     counter = 0
     i=0
-
     end = False
 
-    n = minDist
-    b = bestRoute
-
-    t = 0.001
-    sa = Process(target = SA, args=(b,n,t,numberOfCities/4, distanceMatrix, res, res_arr))
-    switch = True
-    sa.start()
-    
-    if(res.value < minDist):
-        minDist = res.value
-        bestRoute = res_arr[:]
-
-    while(1):
+    while(i < 500):
         m = minDist
-            
-
-        n = minDist
-        b = bestRoute
-
+   
         nextGeneration()
 
         if(minDist == m):
             counter += 1
 
         else:
-            print("\r",minDist / scale_factor, end = "\r")
+            print("\r","Gen: ",i," ",minDist / scale_factor, end = "\r")
             counter = 0
 
 
-        if(counter == int(dead_count / 4) and switch == False):
-         
-            t = (1/i)
-            sa = Process(target = SA, args=(b,n,t,1, distanceMatrix, res, res_arr))
-            switch = True
-            sa.start()
+        if (counter == dead_count):
+            ans, h = SA()
 
-        #Reached End
-        if (counter == dead_count and switch == False):
-            #end = True
-            t = (1/i)
-            sa = Process(target = SA, args=(b,n,t,1, distanceMatrix, res, res_arr))
-            switch = True
-            sa.start()
+            nextGenerationMatrix.clear()
+            nextGenerationMatrix.extend(ans)
+            counter = 0
+            calculateFitness()
+   
+            if (h >= m):
+                end = True
+               
 
-        #Reached End
-        if(counter >= dead_count and switch == True):
-            sa.join()
-            switch = False
-            if(res.value < minDist):
-                minDist = res.value
-                bestRoute = res_arr[:]
-                print("Inserted: ", minDist / scale_factor)
-                counter = 0
-            else: end = True
-
-
-        if(switch == True):
-            if(sa.is_alive() == False):
-                switch = False
-                if(res.value < minDist):
-                    minDist = res.value
-                    bestRoute = res_arr[:]
-                    print("Inserted: ",minDist / scale_factor)
-                    counter = 0
 
         if(end == True):
             genEvolved = len(fitness_curve)
