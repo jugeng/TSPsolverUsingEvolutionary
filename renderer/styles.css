@@ -15,21 +15,23 @@ html {
 
 #list_view {
     background-color: #0f0f0f;
-    height: 25rem;
+    height: 45rem;
     overflow-y: auto;
     font-family: 'Nunito', sans-serif;
+    margin-top: 0.7em;
     margin-right: 0.8em;
 }
 
 
 #city_list {
+  
     list-style-type: none;
     align-items: center;
 }
 
 #city_list li {
     padding: 10px;
-    border-radius: 25px;
+    border-radius: 15px;
     margin: 0.25em;
     transition: all 0.20s;   
 }
@@ -38,10 +40,12 @@ html {
     background-color: #383737;
 }
 
-#city_coords {
-    align-self: center;
-    margin: 0.1em;
+
+
+.warehouse {
+    background-color: rgb(241, 179, 44);
 }
+
 
 #fileinput {
     display: none;
@@ -53,34 +57,23 @@ html {
 
 }
 
+
+
 #side-bar {
     height: 92vh;
+    padding-right: 0;
     background-color: #0f0f0f;
 }
 
 
-input {
-    padding: 5px;
-    margin-bottom: 1.2em;
-}
-
-.butn {
+#butn {
     margin: 0.5em;
     width: 155px;
-    display: inline-block;
     font-family: 'Nunito', sans-serif; 
-    font-size: smaller ;
+   
 }
 
 
-#latlangio input {
-    background-color: rgb(37, 35, 35);
-    border-style: none;
-    border-radius: 0px;
-    color: #a0a0a0;
-    width: 5 rem;
-    margin-right: 1em;
-}
 
 .inline {
     display: flex;
@@ -111,33 +104,53 @@ input {
 .delete {
     background-color: rgb(49, 48, 48);
     margin-right: 1em;
-    float: right;
+
 
 }
 
+.opt_btn {
+    background: #292828;
+    width: 10em;
+    padding: 0.5em;
+    font-weight: bold;
+    border: none;
+    border-radius: 25px;
+    letter-spacing:0.1em;
+    margin-left: 2.5em;
+    border-radius: 12px;
+    font-size: small;
+    font-family: 'Varela Round', sans-serif;
+    color: #ffffff;
+}
+
+.opt_btn:hover {
+    color: #e01469 ;
+}
+
 #map_grid {
-    background-color: #2c2c2c;
-    width: 80vw;
+    background-color: #ffffff;
     height: 92vh;
     overflow: hidden;
 }
 
-#overlay_dist {
-    position: fixed;
-    margin-left: auto;
-    margin-right: auto;
-    padding: 25px;
-    z-index: 2;
-    background-color: #bdbbbc;
-    box-shadow: 0px 5px 5px #222222;
-    left: 0;
-    right:0;
-    bottom: 25px;
-    border-radius: 5em;
-    width: 20em;
-}
+
 
 #reset{
     align-self: end;
 
+}
+
+
+#run {
+    display: none;
+    width: 155px;
+}
+
+#params {
+    padding: 0.5em;
+    background-color: #383737;
+}
+
+h2 {
+    font-weight: bolder;
 }

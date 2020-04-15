@@ -18,10 +18,10 @@
 
     <link href="https://fonts.googleapis.com/css?family=Nunito&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Nunito&family=Sen&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Varela+Round&display=swap" rel="stylesheet">
 </head>
 
 <body>
-
 
     <div>
         <div class="columns has-background-black is-gapless head">
@@ -35,7 +35,10 @@
             </div>
             <div class="column is-2">
                 <div class="container" style="float:right; padding-right: 35px">
-                    <button class="button is-danger is-outlined" id="run" onclick="algoRun()">Run Algorithm</button>
+                    <button id= "run"  class="button is-danger is-outlined" onclick="algoRun()">Run Algorithm</button>
+                    <button class="button is-outlined is-info " id = "butn" onclick="document.getElementById('fileinput').click()">LOAD FILE</button>
+                    <input type="file" id="fileinput" accept=".txt" />
+                   
                 </div>
 
             </div>
@@ -44,6 +47,34 @@
 
     <div >
         <div class="columns" style="margin-bottom: 0;">
+            <div class="column is-3" id="side-bar">
+                <!--City Controller-->
+
+                <div id="params">
+
+                    <div  style="display: inline-block; margin-left: 0.75em;">
+                        <p class="subtitle is-6 has-text-grey-light">Tracking Jobs</p>
+                        <p class="title is-3" id="job_size" style="color: rgb(19, 132, 224);">-</p>
+                    </div>
+                    
+                    <div style="display: inline-block;margin-left: 1.5em;">
+                        <p class="subtitle is-6 has-text-grey-light" >Distance</p>
+                        <p class="title is-3" id="minimum_distance" style="color: rgb(248, 59, 34);">-</p>
+                    </div>
+                    
+                    
+                 
+                </div>
+
+                <!--List of cities-->
+                <div class="block">
+                    <div id="list_view">
+                        <ul id="city_list"></ul>
+                    </div>
+                    <a class="content" id="reset" onclick="reset_array()">Reset List</a>
+                </div>
+
+            </div>
 
             <div class="column">
                 <!--Map-->
@@ -62,45 +93,10 @@
             </div>
 
 
-            <div class="column is-one-fifth" id="side-bar">
-                <!--City Controller-->
-                <div class="block" style="text-align: center">
-
-                    <div style="padding:1.2em;  margin-bottom: 1em; justify-items: center;">
-                        <button id="push_city" class="button is-outlined is-light butn" onclick="add()">ADD CITY</button>
-                        <button id="push_city" class="button is-outlined is-info butn" onclick="document.getElementById('fileinput').click()">LOAD FILE</button>
-                        <input type="file" id="fileinput" accept=".txt" />
-                    </div>
-
-                    <div class="block" id="latlangio">
-                        <div class="inline">
-                            <label> Latitude</label>
-                            <input class="input" type="text" id="city_x" placeholder="Enter Latitude">
-                        </div>
-                        <div class="inline">
-                            <label> Longitude</label>
-                            <input class="input" type="text" id="city_y" placeholder="Enter Longitude">
-                        </div>
-
-                    </div>
-
-                </div>
-
-                <!--List of cities-->
-                <div class="block">
-                    <div id="list_view">
-                        <ul id="city_list"></ul>
-                    </div>
-                    <a class="content" id="reset" onclick="reset_array()">Reset List</a>
-                </div>
-
-            </div>
+            
         </div>
 
-        <div id="overlay_dist">
-            <p class="title is-5" id="minimum_distance" style="color: black;">Distance:</p>
-            <progress id="prog_bar" class="progress" value="0" max="100"></progress>
-        </div>
+        
 
     </div>
     
