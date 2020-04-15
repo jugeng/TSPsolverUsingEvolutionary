@@ -1,13 +1,14 @@
 body {
     overflow: hidden;
 }
+
 html {
     overflow: hidden;
 }
 
 #main-name-title {
     font-family: 'Sen', sans-serif;
-    font-size: small ;
+    font-size: small;
     letter-spacing: 0.5em;
 }
 
@@ -24,7 +25,7 @@ html {
 
 
 #city_list {
-  
+
     list-style-type: none;
     align-items: center;
 }
@@ -33,7 +34,7 @@ html {
     padding: 10px;
     border-radius: 15px;
     margin: 0.25em;
-    transition: all 0.20s;   
+    transition: all 0.20s;
 }
 
 #city_list li:hover {
@@ -68,9 +69,14 @@ html {
 
 #butn {
     margin: 0.5em;
-    width: 155px;
-    font-family: 'Nunito', sans-serif; 
-   
+
+    font-family: 'Nunito', sans-serif;
+
+}
+
+
+.columns.is-gapless:not(:last-child) {
+    margin-bottom: 0; 
 }
 
 
@@ -89,7 +95,7 @@ html {
 #list_view::-webkit-scrollbar {
     width: 6px;
     background-color: #0f0f0f;
-} 
+}
 
 #list_view::-webkit-scrollbar-thumb {
     background-color: #c52b66;
@@ -115,7 +121,7 @@ html {
     font-weight: bold;
     border: none;
     border-radius: 25px;
-    letter-spacing:0.1em;
+    letter-spacing: 0.1em;
     margin-left: 2.5em;
     border-radius: 12px;
     font-size: small;
@@ -124,26 +130,20 @@ html {
 }
 
 .opt_btn:hover {
-    color: #e01469 ;
+    color: #e01469;
 }
 
 #map_grid {
     background-color: #ffffff;
-    height: 92vh;
+    height: 89vh;
     overflow: hidden;
-}
-
-
-
-#reset{
-    align-self: end;
-
 }
 
 
 #run {
     display: none;
-    width: 155px;
+    margin: 0.5em;
+
 }
 
 #params {
