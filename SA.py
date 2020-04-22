@@ -369,6 +369,7 @@ def SA(arr):
     accepted = 1
     s_t = time()
 
+    counter  = 0 
     while(accepted != 0):
         
         accepted = 0
@@ -396,6 +397,8 @@ def SA(arr):
 
         fitness_curve.append(round(minDist /scale_factor, 4))
 
+         
+    logger.info("Total Iterations: {}".format(len(fitness_curve)))
     e_t = time()
     ex_time = e_t-s_t
     logger.info("CPU execution time: {}".format(ex_time))
@@ -437,37 +440,6 @@ def outputRecord():
 
 
     graphing()
-
-
-"""""""""""""""""""""""""""""Pending"""""""""""""""""""""""""""
-
-def nearestNeighbourSolution(l):
-
-    r = random.randint(1,l-1)
-    arr = [0]
-    arr.append(r)
-    while(len(arr) != l):
-        x = max(distanceMatrix[r])
-        temp = list(x[r] for x in distanceMatrix[r+1:])
-        y = max( temp ) 
- 
-        if x > y:
-            r = distanceMatrix[r].index(x)
-            if r not in arr:
-                arr.append (r)
-
-        else:
- 
-            r = temp.index(y) + r + 1 
-            if r not in arr:
-                arr.append (r)
-
-
-
-    print(len(arr), arr)
-    return (arr)
-
-
 
 
 

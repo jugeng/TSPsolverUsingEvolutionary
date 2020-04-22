@@ -219,11 +219,13 @@ def calculateFitness():
 
 
 def mutateChild(gene):
-    global mutationRate
+    global mutationRate, mt_opt
     r = random.random()
     if r < mutationRate:
-        return mutation.RSM(gene)
-
+        if (mt_opt == "RSM"):
+            return mutation.RSM(gene)
+        else: 
+            return mutation.Twors(gene)
 
 def nextGeneration():
     global nextGenerationMatrix, populationMatrix, genCount, bestRoute
@@ -290,7 +292,7 @@ def GA():
             counter = 0
             end_point = i + dead_count 
 
-        if (counter == dead_count):
+        if (counter == dead_count or i == genCount ):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
             e_t = time()
@@ -477,7 +479,7 @@ def logging_setup():
 
 
 def initializeAlgorithm():
-    global data, data_type_flag, populationSize, mutationRate, genCount, dead_count, cx_opt, set_debug, data_cordinate, data_fname
+    global data, data_type_flag, populationSize, mutationRate,mt_opt, genCount, dead_count, cx_opt, set_debug, data_cordinate, data_fname
 
     data = CONFIG['DATASET']['FILE_NAME']
     data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
@@ -489,6 +491,7 @@ def initializeAlgorithm():
     genCount = CONFIG.getint('GENETIC', 'GEN_COUNT')
     dead_count = CONFIG.getint('GENETIC', 'DEAD_COUNTER')
     cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
+    mt_opt = CONFIG['OPERATOR']['MUTATION_OPERATOR']
     set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
     data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
 

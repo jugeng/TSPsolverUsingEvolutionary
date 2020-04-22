@@ -40,6 +40,7 @@ e_t = 0.0
 ex_time = 0.0
 scale_factor = 0.000125
 
+
 cityCoord = []
 
 eel.init("renderer")
@@ -51,14 +52,16 @@ def addCity_using_coords(arr):
 
     s_t = time()
     cityCoord.clear()
+ 
+
     for city in arr:
             i, x, y = city
-
             cityCoord.append([float(x)*scale_factor,float(y)*scale_factor])  #Convert to float for accuracy
-                
+           
 
     numberOfCities =  len(cityCoord)
   
+ 
 
     if numberOfCities > 0:
         distanceMatrix = []
@@ -328,10 +331,8 @@ def runAlgo(temp):
     bestRoute = []
     
     route = list(range(numberOfCities))
-    #route = nearestNeighbourSolution(numberOfCities) 
     route.append(route[0])
 
-    
     if(len(route) == numberOfCities+1):
         logger.info("Initial solution generated successfully")
     else:

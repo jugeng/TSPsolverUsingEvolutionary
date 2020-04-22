@@ -250,8 +250,10 @@ def mutateChild(gene):
     r = random.random()
 
     if r < mutationRate:
-
-        return mutation.RSM(gene)
+        if (mt_opt == "RSM"):
+            return mutation.RSM(gene)
+        else: 
+            return mutation.Twors(gene)
 
 
 def nextGeneration():
@@ -410,10 +412,10 @@ def SA():
     # while(accepted >= endp):
     k=0
     m = minDist 
-    while(k != 10):
+    while(k != 20):
         accepted = 0
         # for i in range(50*len(arr)):
-        for i in range(50*len(arr)):
+        for i in range(100*len(arr)):
             new_arr = testNeighbor(arr)
 
             if(new_arr != arr):
@@ -429,7 +431,7 @@ def SA():
             solution_set.append(arr)
             m = val
 
-    return (solution_set, val)
+    return (solution_set, m)
   
 
 
@@ -440,7 +442,7 @@ def GA():
     i=0
     end = False
 
-    while(i < 500):
+    while(i < genCount):
         m = minDist
    
         nextGeneration()
@@ -455,7 +457,6 @@ def GA():
 
         if (counter == dead_count):
             ans, h = SA()
-
             nextGenerationMatrix.clear()
             nextGenerationMatrix.extend(ans)
             counter = 0
@@ -465,11 +466,9 @@ def GA():
                 end = True
                
 
-
         if(end == True):
             genEvolved = len(fitness_curve)
             logger.info("\nGENERATIONS EVOLVED={gen}".format(gen=str(genEvolved)))
-            
             break
         
         else:
@@ -523,8 +522,8 @@ def graphing():
     ax.plot(x,y, color = ("#72B01D"), linewidth = 2)
 
 
-    gap = math.ceil(genEvolved / 25)
-    plt.xticks(np.arange(0, genEvolved, gap ))
+    # gap = math.ceil(genEvolved / 25)
+    # plt.xticks(np.arange(0, genEvolved, gap ))
 
 
     sol = fig.add_subplot(1, 2, 2)
@@ -640,7 +639,7 @@ def outputRecord():
 
 #Controller Variables
 def initializeAlgorithm():
-    global data, data_type_flag, populationSize, mutationRate, genCount, dead_count, cx_opt, set_debug, data_cordinate, data_fname
+    global data, data_type_flag, populationSize, mutationRate, mt_opt, genCount, dead_count, cx_opt, set_debug, data_cordinate, data_fname
 
     data = CONFIG['DATASET']['FILE_NAME']
     data_type_flag = CONFIG.getint('DATASET', 'DATASET_TYPE')
@@ -649,8 +648,10 @@ def initializeAlgorithm():
         logger.warning("Population size not enough")
         sys.exit()
     mutationRate = CONFIG.getfloat('GENETIC', 'MUTATION_RATE')
+    genCount = CONFIG.getint('GENETIC', 'GEN_COUNT')
     dead_count = CONFIG.getint('GENETIC', 'DEAD_COUNTER')
     cx_opt = CONFIG['OPERATOR']['CROSSOVER_OPERATOR']
+    mt_opt = CONFIG['OPERATOR']['MUTATION_OPERATOR']
     set_debug = CONFIG.getboolean('DEBUG', 'LOG_FILE')
     data_cordinate = CONFIG.getboolean('DATASET','CONTAINS_COORDINATES')
 

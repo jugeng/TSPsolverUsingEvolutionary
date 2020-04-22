@@ -11,13 +11,13 @@ def OC_Single(parentA, parentB):
     childA = list(parentB[:r])
     childB = list(parentA[:r])
 
-    for gene in np.nditer(parentA, flags=["refs_ok"]):
+    for gene in parentA:
         if gene in childA:
             continue
         else:
             childA.append(int(gene))
 
-    for gene in np.nditer(parentB, flags=["refs_ok"]):
+    for gene in parentB:
         if gene in childB:
             continue
         else:

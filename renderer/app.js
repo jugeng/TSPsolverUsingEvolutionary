@@ -5,7 +5,6 @@ var sent_files = false
 var running = false
 
 
-
 var stage = new Konva.Stage({
     container: 'map_grid',
     width: 1500,
@@ -122,7 +121,8 @@ function algoRun() {
             running = false
             document.getElementById("run").disabled = false
             document.getElementById("run").innerHTML = "Run Algorithm"
-            console.log(res)
+            best_sequence(best_route)
+            // console.log(res)
         })
 
     } else {
@@ -130,10 +130,23 @@ function algoRun() {
     }
 }
 
-eel.expose(update_distance)
 
+function best_sequence(arr){
+
+    let ul = document.getElementById("city_list");
+
+    while(ul.firstChild){
+        ul.removeChild(ul.lastChild)
+    }
+
+    for (i = 0; i < best_route.length - 1; i++) {
+        add_to_list ( array[best_route[i]][0], array[best_route[i]] [1], array[best_route[i]] [2] )
+    } 
+}
+
+eel.expose(update_distance)
 function update_distance(val, new_route) {
-    console.log(new_route)
+    // console.log(new_route)
     document.getElementById("minimum_distance").innerHTML = val
     best_route = new_route
     route_draw()
@@ -143,7 +156,9 @@ function show_ex_options(val) {
     if (running === false) {
         x = val.split(" ")
         y = "options " + x[1]
+        z = "#city"+x[1]
         document.getElementById(y).style.display = "block"
+        zoom_in_city(z)
     }
 
 
@@ -153,7 +168,9 @@ function show_ex_options(val) {
 function hide_ex_options(val) {
     x = val.split(" ")
     y = "options " + x[1]
-    document.getElementById(y).style.display = "none"
+    z = "#city"+x[1]
+    document.getElementById(y).style.display = "none";
+    zoom_out_city(z)
 
 }
 
@@ -320,10 +337,30 @@ function reset_array() {
     document.getElementById("butn").style.display = "block"
     document.getElementById("job_size").innerHTML = "-"
     document.getElementById("minimum_distance").innerHTML = "-"
+    document.getElementById("run").disabled = false
+    document.getElementById("run").innerHTML = "Run Algorithm"
 
 }
 
+function zoom_in_city(loc) {
+    if( running === false){
+        let city = stage.find(loc);
+        city.setAttr('radius', 10)
+        city.setAttr('fill', '#EF3E36')
+        citylayer.batchDraw()
+    }
+   
+}
 
+function zoom_out_city(loc) {
+    if( running === false){
+        let city = stage.find(loc);
+        city.setAttr('radius', 5)
+        city.setAttr('fill', '#2E282A')
+        citylayer.batchDraw()
+    }
+   
+}
 
 function draw_cities() {
 
@@ -347,7 +384,7 @@ function draw_cities() {
             x: parseFloat(array[i][1]) * offsetX,
             y: parseFloat(array[i][2]) * offsetY,
             radius: 5,
-            fill: '#0B2027',
+            fill: '#2E282A',
             id: 'city' + array[i][0]
         });
         citylayer.add(circle)
